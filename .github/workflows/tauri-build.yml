@@ -30,10 +30,7 @@ jobs:
 
       - name: Build Tauri App
         uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          # we don't need a release for now, just build the app
           args: --target x86_64-pc-windows-msvc
 
       - name: Upload Windows Executable
