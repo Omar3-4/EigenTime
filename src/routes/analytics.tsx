@@ -4,32 +4,24 @@ import { useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { DataGate } from "@/components/data-gate";
 import { ActivityHeatmap } from "@/components/activity-heatmap";
-import { PerformanceWaveChart, SubjectDonutChart } from "@/components/analytics-charts";
+import { PerformanceWaveChart, SubjectDistributionChart } from "@/components/analytics-charts";
 import {
   BiorhythmPanel,
-  FatiguePanel,
   FlowDriverPanel,
-  NextTaskPanel,
   StabilityPanel,
-  HabitHealthPanel,
   TaskDurationPanel,
-  LifestyleCorrelationPanel,
 } from "@/components/behavioral-panels";
 import {
   buildBiorhythm,
   buildDistribution,
-  buildFatigue,
   buildFlowDriver,
-  buildHeatmap,
   buildStability,
   buildWave,
   predictNextTask,
-  buildHabitHealthScore,
   estimateTaskDuration,
-  buildLifestyleCorrelation,
 } from "@/lib/analytics";
 import { useI18n } from "@/lib/i18n";
-import { allSessions, listSubjects, listTasks } from "@/lib/repo";
+import { sessionsInRange, listSubjects, listTasks } from "@/lib/repo";
 
 export const Route = createFileRoute("/analytics")({
   head: () => ({
@@ -67,54 +59,53 @@ function AnalyticsBody() {
   const { t } = useI18n();
   const [range, setRange] = useState<"weekly" | "monthly">("weekly");
 
-  const sessions = useLiveQuery(() => allSessions(), [], []) ?? [];
-  const subjects = useLiveQuery(() => listSubjects(), [], []) ?? [];
-  const tasks = useLiveQuery(() => listTasks(), [], []) ?? [];
+  const data = useLiveQuery(
+    async () => {
+      const [sess, subj, tsk] = await Promise.all([
+        sessionsInRange(365),
+        listSubjects(),
+        listTasks(),
+      ]);
+      return { sessions: sess, subjects: subj, tasks: tsk };
+    },
+    [],
+    { sessions: [], subjects: [], tasks: [] }
+  );
 
-  const weeks = useMemo(() => buildHeatmap(sessions), [sessions]);
+  const { sessions, subjects, tasks } = data;
+
   const wave = useMemo(() => buildWave(sessions, range), [sessions, range]);
   const distribution = useMemo(() => buildDistribution(sessions, subjects), [sessions, subjects]);
   const biorhythm = useMemo(() => buildBiorhythm(sessions), [sessions]);
   const flow = useMemo(() => buildFlowDriver(sessions, subjects), [sessions, subjects]);
   const stability = useMemo(() => buildStability(sessions), [sessions]);
-  const fatigue = useMemo(() => buildFatigue(sessions), [sessions]);
+  
+  // Keep nextTask strictly for taskDuration estimator
   const nextTask = useMemo(
     () => predictNextTask(tasks, sessions, subjects),
     [tasks, sessions, subjects],
   );
-  const habitHealth = useMemo(() => buildHabitHealthScore(sessions), [sessions]);
   const taskDuration = useMemo(
     () => (nextTask.taskId ? estimateTaskDuration(nextTask.taskId, tasks, sessions) : null),
     [nextTask.taskId, tasks, sessions],
   );
-  const lifestyleCorrelation = useMemo(() => buildLifestyleCorrelation(sessions), [sessions]);
 
   return (
     <div className="space-y-4">
-      <section className="glass rounded-2xl p-5">
-        <h2 className="text-lg font-semibold">{t("analyticsSoon")}</h2>
-        <p className="mt-1 max-w-3xl text-sm text-muted-foreground">{t("analyticsIntro")}</p>
-      </section>
-
-      <ActivityHeatmap weeks={weeks} subjects={subjects} />
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <PerformanceWaveChart data={wave} range={range} onRangeChange={setRange} />
-        <SubjectDonutChart slices={distribution} subjects={subjects} />
+        <SubjectDistributionChart slices={distribution} subjects={subjects} />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-4">
         <BiorhythmPanel data={biorhythm} />
         <FlowDriverPanel data={flow} />
         <StabilityPanel data={stability} />
-        <FatiguePanel data={fatigue} />
-        <HabitHealthPanel data={habitHealth} />
         <TaskDurationPanel data={taskDuration} taskTitle={nextTask.title} />
-        <NextTaskPanel data={nextTask} />
-        <div className="lg:col-span-2 2xl:col-span-2">
-           <LifestyleCorrelationPanel data={lifestyleCorrelation} />
-        </div>
       </div>
+
+      <ActivityHeatmap sessions={sessions} subjects={subjects} />
     </div>
   );
 }

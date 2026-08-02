@@ -523,58 +523,116 @@ export interface LifestyleCorrelation {
   insight: string;
 }
 
+function pointBiserialCorrelation(values: number[], group1Indices: Set<number>): number {
+  const n = values.length;
+  if (n < 2) return 0;
+  
+  let n1 = 0;
+  let sum1 = 0;
+  let sum0 = 0;
+  let totalSum = 0;
+
+  for (let i = 0; i < n; i++) {
+    const v = values[i]!;
+    totalSum += v;
+    if (group1Indices.has(i)) {
+      n1++;
+      sum1 += v;
+    } else {
+      sum0 += v;
+    }
+  }
+
+  const n0 = n - n1;
+  if (n1 === 0 || n0 === 0) return 0;
+
+  const m1 = sum1 / n1;
+  const m0 = sum0 / n0;
+  const mTotal = totalSum / n;
+
+  let sqSum = 0;
+  for (const v of values) {
+    sqSum += Math.pow(v - mTotal, 2);
+  }
+  const sn = Math.sqrt(sqSum / n);
+  if (sn === 0) return 0;
+
+  return ((m1 - m0) / sn) * Math.sqrt((n1 * n0) / (n * n));
+}
+
 export function buildLifestyleCorrelation(sessions: Session[]): LifestyleCorrelation[] {
   const focus = sessions.filter(s => s.mode === "focus");
   if (focus.length < 10) return [];
 
-  const morningSessions = focus.filter(s => new Date(s.startedAt).getHours() < 12);
-  const eveningSessions = focus.filter(s => new Date(s.startedAt).getHours() >= 18);
-  const weekendSessions = focus.filter(s => {
-    const day = new Date(s.startedAt).getDay();
-    return day === 0 || day === 6;
-  });
+  const durations = focus.map(s => s.durationSec);
+  const morningIdx = new Set<number>();
+  const eveningIdx = new Set<number>();
+  const weekendIdx = new Set<number>();
 
-  const avgDuration = (arr: Session[]) => arr.length ? arr.reduce((a, s) => a + s.durationSec, 0) / arr.length : 0;
-  const overallAvg = avgDuration(focus);
-
-  const morningRatio = avgDuration(morningSessions) / overallAvg;
-  const eveningRatio = avgDuration(eveningSessions) / overallAvg;
-  const weekendRatio = avgDuration(weekendSessions) / overallAvg;
+  for (let i = 0; i < focus.length; i++) {
+    const s = focus[i]!;
+    const d = new Date(s.startedAt);
+    const hour = d.getHours();
+    const day = d.getDay();
+    if (hour < 12) morningIdx.add(i);
+    if (hour >= 18) eveningIdx.add(i);
+    if (day === 0 || day === 6) weekendIdx.add(i);
+  }
 
   const correlations: LifestyleCorrelation[] = [];
-
-  if (morningRatio > 1.1) {
+  
+  const rMorning = pointBiserialCorrelation(durations, morningIdx);
+  if (rMorning > 0.1) {
     correlations.push({
       factor: "Early Morning",
-      correlation: Math.min(100, Math.round((morningRatio - 1) * 100)),
+      correlation: Math.round(rMorning * 100),
       insight: "Morning sessions yield longer focus times."
     });
+  } else if (rMorning < -0.1) {
+    correlations.push({
+      factor: "Early Morning",
+      correlation: Math.round(rMorning * 100),
+      insight: "Morning sessions tend to be shorter."
+    });
   }
-  
-  if (eveningRatio < 0.9 && eveningSessions.length > 5) {
+
+  const rEvening = pointBiserialCorrelation(durations, eveningIdx);
+  if (rEvening > 0.1) {
     correlations.push({
       factor: "Late Evening",
-      correlation: Math.max(-100, Math.round((eveningRatio - 1) * 100)),
+      correlation: Math.round(rEvening * 100),
+      insight: "Evening sessions yield longer focus times."
+    });
+  } else if (rEvening < -0.1) {
+    correlations.push({
+      factor: "Late Evening",
+      correlation: Math.round(rEvening * 100),
       insight: "Evening focus tends to be fragmented."
     });
   }
-  
-  if (weekendRatio > 1.2) {
+
+  const rWeekend = pointBiserialCorrelation(durations, weekendIdx);
+  if (rWeekend > 0.1) {
     correlations.push({
       factor: "Weekends",
-      correlation: Math.min(100, Math.round((weekendRatio - 1) * 100)),
+      correlation: Math.round(rWeekend * 100),
       insight: "Strongest deep work happens on weekends."
+    });
+  } else if (rWeekend < -0.1) {
+    correlations.push({
+      factor: "Weekends",
+      correlation: Math.round(rWeekend * 100),
+      insight: "Weekend focus tends to be shorter."
     });
   }
 
   if (correlations.length === 0) {
      correlations.push({
        factor: "Consistent Routine",
-       correlation: 85,
+       correlation: 0,
        insight: "Your focus quality is resilient across different times."
      });
   }
 
   return correlations.sort((a, b) => Math.abs(b.correlation) - Math.abs(a.correlation));
 }
-

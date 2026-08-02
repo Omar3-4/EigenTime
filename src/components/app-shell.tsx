@@ -22,8 +22,15 @@ const nav = [
   { to: "/settings", key: "settings", icon: SettingsIcon },
 ] as const;
 
+import { MiniTimerWidget } from "@/components/mini-timer";
+import { EyeTimerWatcher } from "@/components/eye-timer-watcher";
+import { performAutomatedBackup } from "@/lib/backup";
+
 export function AppShell({ children, title }: { children: ReactNode; title: string }) {
   const { t, lang, setLang } = useI18n();
+  useEffect(() => {
+    performAutomatedBackup();
+  }, []);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [today, setToday] = useState("");
 
@@ -39,7 +46,9 @@ export function AppShell({ children, title }: { children: ReactNode; title: stri
   }, [lang]);
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen relative">
+      <MiniTimerWidget />
+      <EyeTimerWatcher />
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col gap-2 p-4 md:flex">
         <div className="glass flex items-center gap-3 rounded-2xl px-4 py-4">
           <div
@@ -74,9 +83,7 @@ export function AppShell({ children, title }: { children: ReactNode; title: stri
               </Link>
             );
           })}
-          <div className="mt-auto rounded-xl bg-secondary/60 p-3 text-xs text-muted-foreground">
-            {t("offlineNote")}
-          </div>
+
         </nav>
       </aside>
 

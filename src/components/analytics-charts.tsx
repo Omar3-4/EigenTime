@@ -1,16 +1,3 @@
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  Cell,
-  Legend,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 import type { DistributionSlice, WavePoint } from "@/lib/analytics";
 import type { Subject } from "@/lib/db";
 import { useI18n } from "@/lib/i18n";
@@ -35,8 +22,10 @@ export function PerformanceWaveChart({
   onRangeChange: (r: "weekly" | "monthly") => void;
 }) {
   const { t } = useI18n();
+  const maxHours = Math.max(1, ...data.map((d) => d.hours));
+
   return (
-    <section className="glass rounded-2xl p-5">
+    <section className="glass rounded-2xl p-6 sm:p-8 shadow-sm transition-all duration-300 ease-out hover:shadow-md">
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 sm:flex sm:justify-between">
         <div className="min-w-0">
           <h2 className="truncate text-base font-semibold">{t("waveTitle")}</h2>
@@ -50,8 +39,8 @@ export function PerformanceWaveChart({
               onClick={() => onRangeChange(r)}
               className={
                 r === range
-                  ? "rounded-lg bg-card px-3 py-1.5 shadow-sm"
-                  : "rounded-lg px-3 py-1.5 text-muted-foreground"
+                  ? "rounded-lg bg-card px-3 py-1.5 shadow-sm transition-all duration-300 ease-out"
+                  : "rounded-lg px-3 py-1.5 text-muted-foreground transition-all duration-300 ease-out hover:text-foreground hover:bg-secondary/80"
               }
             >
               {t(r)}
@@ -60,64 +49,33 @@ export function PerformanceWaveChart({
         </div>
       </header>
 
-      <div className="mt-4 h-64 w-full" dir="ltr">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
-            <defs>
-              <linearGradient id="waveFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="var(--focus)" stopOpacity={0.55} />
-                <stop offset="100%" stopColor="var(--elapsed)" stopOpacity={0.04} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-            <XAxis
-              dataKey="label"
-              tickLine={false}
-              axisLine={false}
-              fontSize={11}
-              stroke="var(--muted-foreground)"
-            />
-            <YAxis
-              tickLine={false}
-              axisLine={false}
-              fontSize={11}
-              stroke="var(--muted-foreground)"
-              unit="h"
-            />
-            <Tooltip
-              contentStyle={{
-                borderRadius: 12,
-                border: "1px solid var(--border)",
-                background: "var(--card)",
-                fontSize: 12,
-              }}
-              formatter={(v: number, key) =>
-                key === "hours" ? [`${v}h`, t("focusHours")] : [`${v}%`, t("energy")]
-              }
-            />
-            <Area
-              type="monotone"
-              dataKey="hours"
-              stroke="var(--focus)"
-              strokeWidth={2.5}
-              fill="url(#waveFill)"
-            />
-            <Area
-              type="monotone"
-              dataKey="energy"
-              stroke="var(--subject)"
-              strokeWidth={1.5}
-              strokeDasharray="4 4"
-              fill="none"
-            />
-          </AreaChart>
-        </ResponsiveContainer>
+      <div className="mt-8 flex h-48 w-full items-end gap-1 sm:gap-2">
+        {data.map((d, i) => {
+          const heightPct = Math.round((d.hours / maxHours) * 100);
+          return (
+            <div key={i} className="group relative flex flex-1 flex-col items-center justify-end h-full">
+              <div 
+                className="w-full max-w-[48px] rounded-t-md bg-[var(--focus)] opacity-80 transition-opacity group-hover:opacity-100" 
+                style={{ height: `${heightPct}%`, minHeight: d.hours > 0 ? '4px' : '0' }}
+              />
+              <div className="mt-2 text-[10px] text-muted-foreground truncate w-full text-center">
+                {d.label}
+              </div>
+              
+              <div className="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 opacity-0 transition-opacity group-hover:opacity-100 z-10 whitespace-nowrap rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-xs shadow-sm">
+                <div className="font-semibold text-[var(--foreground)]">{d.label}</div>
+                <div className="text-[var(--focus)]">{d.hours}h {t("focusHours")}</div>
+                <div className="text-muted-foreground">{d.energy}% {t("energy")}</div>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </section>
   );
 }
 
-export function SubjectDonutChart({
+export function SubjectDistributionChart({
   slices,
   subjects,
 }: {
@@ -132,44 +90,36 @@ export function SubjectDonutChart({
   const total = slices.reduce((a, s) => a + s.sec, 0);
 
   return (
-    <section className="glass rounded-2xl p-5">
+    <section className="glass rounded-2xl p-6 sm:p-8 shadow-sm transition-all duration-300 ease-out hover:shadow-md">
       <h2 className="text-base font-semibold">{t("donutTitle")}</h2>
       <p className="text-xs text-muted-foreground">{t("donutSub")}</p>
 
       {slices.length === 0 ? (
         <p className="mt-8 text-center text-sm text-muted-foreground">{t("noneYet")}</p>
       ) : (
-        <div className="mt-2 h-64 w-full" dir="ltr">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={slices}
-                dataKey="sec"
-                nameKey="name"
-                innerRadius="58%"
-                outerRadius="82%"
-                paddingAngle={2}
-                stroke="none"
-              >
-                {slices.map((s, i) => (
-                  <Cell key={s.subjectId ?? `none-${i}`} fill={colorFor(s, i)} />
-                ))}
-              </Pie>
-              <Legend verticalAlign="bottom" iconType="circle" wrapperStyle={{ fontSize: 12 }} />
-              <Tooltip
-                contentStyle={{
-                  borderRadius: 12,
-                  border: "1px solid var(--border)",
-                  background: "var(--card)",
-                  fontSize: 12,
-                }}
-                formatter={(v: number, name) => [
-                  `${formatHoursShort(v)} · ${total ? Math.round((v / total) * 100) : 0}%`,
-                  String(name),
-                ]}
+        <div className="mt-6 flex flex-col justify-center h-48 gap-6">
+          <div className="flex h-6 w-full overflow-hidden rounded-full border border-[var(--glass-border)] bg-secondary">
+            {slices.map((s, i) => (
+              <div
+                key={s.subjectId ?? `none-${i}`}
+                style={{ width: `${total ? (s.sec / total) * 100 : 0}%`, backgroundColor: colorFor(s, i) }}
+                className="h-full transition-all"
+                title={`${s.name}: ${formatHoursShort(s.sec)}`}
               />
-            </PieChart>
-          </ResponsiveContainer>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm sm:grid-cols-3">
+            {slices.map((s, i) => (
+              <div key={s.subjectId ?? `none-${i}`} className="flex items-center gap-2 transition-all duration-300 ease-out hover:scale-[1.02]">
+                <div className="size-3 shrink-0 rounded-full" style={{ backgroundColor: colorFor(s, i) }} />
+                <span className="truncate">{s.name}</span>
+                <span className="ml-auto text-xs text-muted-foreground tabular-nums">
+                  {Math.round(s.pct)}%
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </section>

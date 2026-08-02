@@ -12,7 +12,7 @@ export interface Subject {
   createdAt: number;
 }
 
-export type SubjectColor = "focus" | "subject" | "productivity" | "elapsed" | "goal";
+export type SubjectColor = "focus" | "subject" | "productivity" | "elapsed" | "goal" | string;
 
 export interface Session {
   id: UUID;
@@ -25,6 +25,12 @@ export interface Session {
   note?: string;
   /** yyyy-mm-dd local day key, indexed for fast day roll-ups */
   day: string;
+  // Expansion fields:
+  xp?: number;
+  fei?: number;
+  pauseCount?: number;
+  pauseDurationSec?: number;
+  scratchpadNotes?: string[];
 }
 
 export interface Task {
@@ -59,16 +65,59 @@ export interface DailyStat {
 
 export interface TimerSnapshot {
   subjectId: UUID | null;
-  countdown: boolean;
   targetSec: number;
   accumulatedSec: number;
   runningSince: number | null;
   difficulty: 1 | 2 | 3 | 4 | 5;
+
+  /**
+   * Wall-clock epoch ms of the very first "start" press in this session.
+   * Survives pause/resume cycles — used by finish() to compute accurate
+   * session startedAt without assuming a contiguous block of time.
+   */
+  overallStartedAt?: number | null;
+
+  // ── Pomodoro / mode extension ────────────────────────────────────────────
+  /** "stopwatch" (default) or "pomodoro" */
+  mode?: "stopwatch" | "pomodoro";
+  /** Focus phase duration in seconds */
+  pomoFocusSec?: number;
+  /** Break phase duration in seconds */
+  pomoBreakSec?: number;
+  /** Total rounds per cycle (default 4) */
+  pomoRounds?: number;
+  /** Current round number (1-based) */
+  pomoCurrentRound?: number;
+  /** Current phase */
+  pomoPhase?: "focus" | "break" | "completed";
+  /** Accumulated FOCUS seconds from completed pomo rounds */
+  pomoAccumulatedFocusSec?: number;
+
+  // Expansion fields:
+  playlist?: { 
+    subjectId: string | null; 
+    mode: "stopwatch" | "pomodoro"; 
+    pomoFocusSec?: number; 
+    pomoBreakSec?: number; 
+    pomoRounds?: number;
+    targetSec?: number;
+  }[];
+  playlistIndex?: number;
+  scratchpadNotes?: string[];
+  pauseCount?: number;
+  pauseDurationSec?: number;
+  /** Epoch MS of the exact moment this session was paused, to compute duration on resume. */
+  pausedAt?: number | null;
 }
 
 export interface SettingsRecord {
   key: string;
   value: unknown;
+}
+
+export interface TimerSnapshotRecord {
+  id: "current";
+  snapshot: TimerSnapshot;
 }
 
 export class EigenTimeDB extends Dexie {
@@ -78,6 +127,7 @@ export class EigenTimeDB extends Dexie {
   scheduleBlocks!: Table<ScheduleBlock, string>;
   dailyStats!: Table<DailyStat, string>;
   settings!: Table<SettingsRecord, string>;
+  timerSnapshots!: Table<TimerSnapshotRecord, string>;
 
   constructor() {
     super("eigentime");
@@ -89,6 +139,20 @@ export class EigenTimeDB extends Dexie {
       dailyStats: "day",
       settings: "key",
     });
+    this.version(2).stores({
+      timerSnapshots: "id",
+    }).upgrade(async (tx) => {
+      try {
+        const old = await tx.table("settings").get("timerSnapshot");
+        if (old && old.value) {
+          await tx.table("timerSnapshots").put({ id: "current", snapshot: old.value });
+        }
+      } catch (e) {
+        console.warn("Migration v2 failed:", e);
+      }
+    });
+    this.version(3).stores({});
+    this.version(4).stores({});
   }
 }
 

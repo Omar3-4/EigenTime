@@ -1,4 +1,3 @@
-import { AlertTriangle, Brain, Gauge, Sparkles, Waves, Heart, Timer, LineChart } from "lucide-react";
 import type {
   Biorhythm,
   FatigueWarning,
@@ -12,27 +11,17 @@ import type {
 import { useI18n } from "@/lib/i18n";
 
 function Panel({
-  icon: Icon,
   tone,
   title,
   children,
 }: {
-  icon: typeof Gauge;
   tone: string;
   title: string;
   children: React.ReactNode;
 }) {
   return (
-    <article className="glass flex flex-col gap-3 rounded-2xl p-5">
-      <header className="flex min-w-0 items-center gap-3">
-        <span
-          className="flex size-10 shrink-0 items-center justify-center rounded-xl"
-          style={{ background: `var(--${tone}-soft)`, color: `var(--${tone})` }}
-        >
-          <Icon className="size-5" />
-        </span>
-        <h3 className="truncate text-sm font-semibold">{title}</h3>
-      </header>
+    <article className="glass flex flex-col gap-3 rounded-2xl p-6 sm:p-8 transition-all duration-300 ease-out hover:shadow-md hover:scale-[1.01]">
+      <header className="flex min-w-0 items-center justify-between border-b border-border/50 pb-3"><h3 className="truncate text-sm font-semibold tracking-tight uppercase text-muted-foreground">{title}</h3><span className="size-2 shrink-0 rounded-full" style={{ background: `var(--${tone})` }} aria-hidden="true" /></header>
       {children}
     </article>
   );
@@ -55,7 +44,7 @@ export function BiorhythmPanel({ data }: { data: Biorhythm }) {
   const { t } = useI18n();
   const peak = Math.max(1, ...data.hours.map((h) => h.minutes));
   return (
-    <Panel icon={Waves} tone="focus" title={t("biorhythm")}>
+    <Panel tone="focus" title={t("biorhythm")}>
       <div className="flex h-24 items-end gap-[3px]" dir="ltr">
         {data.hours.map((h) => (
           <div
@@ -90,7 +79,7 @@ export function BiorhythmPanel({ data }: { data: Biorhythm }) {
 export function FlowDriverPanel({ data }: { data: FlowDriver }) {
   const { t } = useI18n();
   return (
-    <Panel icon={Sparkles} tone="subject" title={t("flowDriver")}>
+    <Panel tone="subject" title={t("flowDriver")}>
       <p className="tabular font-display text-3xl font-semibold">{data.score}</p>
       <Meter value={data.score} tone="subject" />
       <p className="text-xs text-muted-foreground">
@@ -109,7 +98,7 @@ export function FlowDriverPanel({ data }: { data: FlowDriver }) {
 export function StabilityPanel({ data }: { data: Stability }) {
   const { t } = useI18n();
   return (
-    <Panel icon={Brain} tone="elapsed" title={t("stability")}>
+    <Panel tone="elapsed" title={t("stability")}>
       <p className="tabular font-display text-3xl font-semibold">{data.index}</p>
       <Meter value={data.index} tone="elapsed" />
       <p className="text-xs text-muted-foreground">
@@ -127,7 +116,7 @@ export function FatiguePanel({ data }: { data: FatigueWarning }) {
   const { t } = useI18n();
   const tone = data.level === "high" ? "productivity" : data.level === "moderate" ? "goal" : "goal";
   return (
-    <Panel icon={AlertTriangle} tone={tone} title={t("fatigue")}>
+    <Panel tone={tone} title={t("fatigue")}>
       <p className="tabular font-display text-3xl font-semibold">{data.risk}%</p>
       <Meter value={data.risk} tone={tone} />
       <p className="text-xs font-semibold">{t(`fatigue_${data.level}`)}</p>
@@ -143,7 +132,7 @@ export function FatiguePanel({ data }: { data: FatigueWarning }) {
 export function NextTaskPanel({ data }: { data: NextTaskPrediction }) {
   const { t } = useI18n();
   return (
-    <Panel icon={Gauge} tone="goal" title={t("nextTask")}>
+    <Panel tone="goal" title={t("nextTask")}>
       {data.taskId ? (
         <>
           <p className="font-display text-lg font-semibold">{data.title}</p>
@@ -166,7 +155,7 @@ export function HabitHealthPanel({ data }: { data: HabitHealth }) {
   const { t } = useI18n();
   const tone = data.trend === "declining" ? "goal" : data.trend === "improving" ? "focus" : "elapsed";
   return (
-    <Panel icon={Heart} tone={tone} title={t("habitHealth") ?? "Habit Health"}>
+    <Panel tone={tone} title={t("habitHealth") ?? "Habit Health"}>
       <p className="tabular font-display text-3xl font-semibold">{data.score}</p>
       <Meter value={data.score} tone={tone} />
       <p className="text-xs font-semibold capitalize">{data.trend}</p>
@@ -184,13 +173,13 @@ export function TaskDurationPanel({ data, taskTitle }: { data: DurationEstimate 
   const { t } = useI18n();
   if (!data) {
     return (
-      <Panel icon={Timer} tone="elapsed" title={t("taskDuration") ?? "Task Duration"}>
+      <Panel tone="elapsed" title={t("taskDuration") ?? "Task Duration"}>
         <p className="text-sm text-muted-foreground">Need more task history to estimate.</p>
       </Panel>
     );
   }
   return (
-    <Panel icon={Timer} tone="elapsed" title={t("taskDuration") ?? "Task Duration"}>
+    <Panel tone="elapsed" title={t("taskDuration") ?? "Task Duration"}>
       <p className="font-display text-lg font-semibold">{taskTitle ?? "Pending Task"}</p>
       <p className="tabular font-display text-3xl font-semibold">{data.estimatedMinutes}m</p>
       <Meter value={data.confidence} tone="elapsed" />
@@ -207,7 +196,7 @@ export function TaskDurationPanel({ data, taskTitle }: { data: DurationEstimate 
 export function LifestyleCorrelationPanel({ data }: { data: LifestyleCorrelation[] }) {
   const { t } = useI18n();
   return (
-    <Panel icon={LineChart} tone="subject" title={t("lifestyleCorrelation") ?? "Lifestyle Correlation"}>
+    <Panel tone="subject" title={t("lifestyleCorrelation") ?? "Lifestyle Correlation"}>
       {data.length === 0 ? (
         <p className="text-sm text-muted-foreground">Log more sessions to unlock correlations.</p>
       ) : (
