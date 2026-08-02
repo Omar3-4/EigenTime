@@ -1,0 +1,206 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * EigenTime design system — light glassmorphism.
+ * Light-grey baseline, pastel ambient glows, semi-transparent glass surfaces.
+ * All colors are oklch and exposed as semantic tokens.
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+
+  /* functional accents */
+  --color-focus: var(--focus);
+  --color-focus-foreground: var(--focus-foreground);
+  --color-focus-soft: var(--focus-soft);
+  --color-subject: var(--subject);
+  --color-subject-foreground: var(--subject-foreground);
+  --color-subject-soft: var(--subject-soft);
+  --color-productivity: var(--productivity);
+  --color-productivity-foreground: var(--productivity-foreground);
+  --color-productivity-soft: var(--productivity-soft);
+  --color-elapsed: var(--elapsed);
+  --color-elapsed-foreground: var(--elapsed-foreground);
+  --color-elapsed-soft: var(--elapsed-soft);
+  --color-goal: var(--goal);
+  --color-goal-foreground: var(--goal-foreground);
+  --color-goal-soft: var(--goal-soft);
+
+  --color-glass: var(--glass);
+  --color-glass-border: var(--glass-border);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --font-display: "Sora", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+:root {
+  --radius: 1rem;
+
+  --background: oklch(0.968 0.004 250);
+  --foreground: oklch(0.26 0.026 262);
+  --card: oklch(0.995 0.002 250);
+  --card-foreground: oklch(0.26 0.026 262);
+  --popover: oklch(0.995 0.002 250);
+  --popover-foreground: oklch(0.26 0.026 262);
+  --primary: oklch(0.62 0.13 215);
+  --primary-foreground: oklch(0.99 0.005 220);
+  --secondary: oklch(0.945 0.007 250);
+  --secondary-foreground: oklch(0.34 0.03 262);
+  --muted: oklch(0.945 0.007 250);
+  --muted-foreground: oklch(0.55 0.022 258);
+  --accent: oklch(0.93 0.02 220);
+  --accent-foreground: oklch(0.3 0.04 250);
+  --destructive: oklch(0.62 0.2 22);
+  --destructive-foreground: oklch(0.99 0.005 250);
+  --border: oklch(0.9 0.008 255);
+  --input: oklch(0.9 0.008 255);
+  --ring: oklch(0.72 0.1 210);
+
+  /* functional accent palette */
+  --focus: oklch(0.72 0.13 190);
+  --focus-foreground: oklch(0.28 0.06 200);
+  --focus-soft: oklch(0.94 0.04 190);
+  --subject: oklch(0.62 0.16 300);
+  --subject-foreground: oklch(0.3 0.08 300);
+  --subject-soft: oklch(0.95 0.035 300);
+  --productivity: oklch(0.72 0.15 60);
+  --productivity-foreground: oklch(0.36 0.08 60);
+  --productivity-soft: oklch(0.955 0.04 70);
+  --elapsed: oklch(0.62 0.15 255);
+  --elapsed-foreground: oklch(0.32 0.08 260);
+  --elapsed-soft: oklch(0.95 0.035 255);
+  --goal: oklch(0.68 0.14 160);
+  --goal-foreground: oklch(0.32 0.07 160);
+  --goal-soft: oklch(0.95 0.04 160);
+
+  --glass: oklch(1 0 0 / 62%);
+  --glass-border: oklch(1 0 0 / 70%);
+
+  --chart-1: var(--focus);
+  --chart-2: var(--subject);
+  --chart-3: var(--productivity);
+  --chart-4: var(--elapsed);
+  --chart-5: var(--goal);
+
+  --shadow-glass: 0 1px 2px oklch(0.4 0.03 260 / 4%), 0 12px 32px -12px oklch(0.4 0.05 260 / 16%);
+  --shadow-lift: 0 2px 6px oklch(0.4 0.03 260 / 6%), 0 24px 48px -18px oklch(0.4 0.06 260 / 22%);
+  --gradient-focus: linear-gradient(135deg, var(--focus), var(--elapsed));
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    position: relative;
+  }
+
+  /* pastel ambient glows */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(60rem 40rem at 12% -10%, oklch(0.85 0.08 195 / 45%), transparent 60%),
+      radial-gradient(50rem 36rem at 92% 4%, oklch(0.87 0.07 305 / 40%), transparent 60%),
+      radial-gradient(46rem 34rem at 76% 96%, oklch(0.9 0.06 80 / 38%), transparent 62%),
+      radial-gradient(44rem 34rem at 8% 92%, oklch(0.88 0.06 160 / 34%), transparent 62%);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+}
+
+@utility glass {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-glass);
+  backdrop-filter: blur(18px) saturate(150%);
+}
+
+@utility glass-strong {
+  background: oklch(1 0 0 / 80%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-lift);
+  backdrop-filter: blur(24px) saturate(160%);
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@layer base {
+  [dir="rtl"] body {
+    font-family: "Noto Kufi Arabic", var(--font-sans);
+  }
+
+  [dir="rtl"] h1,
+  [dir="rtl"] h2,
+  [dir="rtl"] h3,
+  [dir="rtl"] h4 {
+    font-family: "Noto Kufi Arabic", var(--font-display);
+    letter-spacing: 0;
+  }
+}
+
+:root {
+  /* 5-tier heatmap scale: light slate -> deep blue */
+  --heat-0: oklch(0.93 0.006 250);
+  --heat-1: oklch(0.87 0.05 245);
+  --heat-2: oklch(0.76 0.1 250);
+  --heat-3: oklch(0.62 0.15 255);
+  --heat-4: oklch(0.45 0.16 260);
+}
