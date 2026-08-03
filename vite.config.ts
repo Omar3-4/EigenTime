@@ -11,6 +11,8 @@ export default defineConfig({
     react(),
     tsconfigPaths(),
   ],
+  clearScreen: false,
+  base: "",
   build: {
     outDir: '.output/public',
     emptyOutDir: true,
