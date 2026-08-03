@@ -16,8 +16,8 @@ EigenTime is a highly customizable, strictly offline focus and time management a
 Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating), as well as Rust for the Tauri backend.
 
 ```sh
-git clone https://github.com/Omar3-4/Private-Repo.git
-cd Private-Repo
+git clone https://github.com/Omar3-4/EigenTime.git
+cd EigenTime
 npm install
 npm run tauri dev
 ```
