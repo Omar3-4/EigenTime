@@ -33,3 +33,15 @@ npm run tauri dev
 ## License
 
 This project is licensed under the GNU General Public License v3.0 (GPLv3). See the [LICENSE](LICENSE) file for details.
+
+## Download & Installation
+
+Head over to the [Releases](https://github.com/Omar3-4/EigenTime/releases) page to download the latest version for Windows (\.exe\) and Linux (\.AppImage\ or \.deb\).
+
+> [!WARNING]
+> **Windows SmartScreen Protection**
+> Because EigenTime is a free, open-source project developed without a paid corporate code-signing certificate, Windows SmartScreen will show a blue **'Windows protected your PC'** warning when you first open the installer.
+>
+> To install safely:
+> 1. Click **More info** on the blue screen.
+> 2. Click **Run anyway**.
