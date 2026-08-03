@@ -1,7 +1,7 @@
 use tauri::{
   menu::{Menu, MenuItem, PredefinedMenuItem},
   tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-  App, Manager, Runtime,
+  App, Manager, Runtime, Emitter, Listener,
 };
 
 /// Timer state payload received from the frontend via `tray:timer-state` event.
