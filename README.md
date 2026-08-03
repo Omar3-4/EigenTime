@@ -1,32 +1,34 @@
-# Welcome to your Lovable project
+# EigenTime
 
-This project was built with [Lovable](https://lovable.dev).
+EigenTime is a highly customizable, strictly offline focus and time management application built with privacy and aesthetics in mind. It helps you track your deep work sessions, measure your progress with detailed analytics, and manage your focus blocks with beautiful, dynamic user interfaces.
 
-## Build with Lovable
+## Features
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
+- **100% Offline & Private:** All data is stored locally on your machine. No cloud syncing, no accounts, no tracking.
+- **Deep Focus Timer:** Fully customizable Pomodoro and stopwatch modes, complete with ambient soundscapes and dynamic color gradients.
+- **Advanced Analytics:** Interactive charts to track your focus history, deep work streaks, and fatigue levels over time.
+- **Gamification:** Earn XP, level up, and maintain streaks as you build your focus habits.
+- **Health Tracking:** Built-in posture, hydration, and eye rest (20-20-20 rule) reminders to keep you healthy during long work sessions.
+- **Cross-Platform:** Built with Tauri to provide a native, lightning-fast experience on Windows, Linux, and macOS.
 
 ## Development
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating), as well as Rust for the Tauri backend.
 
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
+git clone https://github.com/Omar3-4/Private-Repo.git
+cd Private-Repo
+npm install
+npm run tauri dev
 ```
 
 ## Built with
 
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS
+- [Tauri](https://tauri.app)
+- [React](https://react.dev)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [Dexie.js (IndexedDB)](https://dexie.org/)
 
 ## License
 
