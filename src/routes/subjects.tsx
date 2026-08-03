@@ -13,11 +13,7 @@ import {
   setSubjectArchived,
   weeklySecondsBySubject,
 } from "@/lib/repo";
-import {
-  getSubjectColor,
-  getSubjectSoftColor,
-  subjectPresetSwatches,
-} from "@/lib/subject-colors";
+import { getSubjectColor, getSubjectSoftColor, subjectPresetSwatches } from "@/lib/subject-colors";
 import { formatHoursShort } from "@/lib/time";
 import { cn } from "@/lib/utils";
 
@@ -81,7 +77,10 @@ function SubjectsBody() {
           return (
             <article
               key={s.id}
-              className={cn("glass rounded-2xl p-5 transition-shadow hover:shadow-lg", s.archived && "opacity-60")}
+              className={cn(
+                "glass rounded-2xl p-5 transition-shadow hover:shadow-lg",
+                s.archived && "opacity-60",
+              )}
             >
               <div className="flex items-start gap-3">
                 <span
@@ -149,7 +148,9 @@ function SubjectsBody() {
                 }}
                 className={cn(
                   "size-8 rounded-lg border-2 transition-all hover:scale-105",
-                  !useCustom && color === swatch.value ? "scale-110 border-foreground shadow-md" : "border-transparent",
+                  !useCustom && color === swatch.value
+                    ? "scale-110 border-foreground shadow-md"
+                    : "border-transparent",
                 )}
                 style={{ background: swatch.color }}
                 title={swatch.name}

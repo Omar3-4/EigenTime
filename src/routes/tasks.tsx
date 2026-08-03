@@ -157,7 +157,9 @@ function TaskList({
             </li>
           );
         })}
-        {items.length === 0 && <li className="py-6 text-sm text-muted-foreground">{t("noneYet")}</li>}
+        {items.length === 0 && (
+          <li className="py-6 text-sm text-muted-foreground">{t("noneYet")}</li>
+        )}
       </ul>
     </section>
   );

@@ -430,14 +430,15 @@ export interface HabitHealth {
 
 export function buildHabitHealthScore(sessions: Session[]): HabitHealth {
   const focus = sessions.filter((s) => s.mode === "focus");
-  if (focus.length === 0) return { score: 0, trend: "stable", streakDays: 0, longTermConsistency: 0 };
-  
+  if (focus.length === 0)
+    return { score: 0, trend: "stable", streakDays: 0, longTermConsistency: 0 };
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  
+
   // Calculate Streak
   let streak = 0;
-  const daysWithFocus = new Set(focus.map(s => s.day));
+  const daysWithFocus = new Set(focus.map((s) => s.day));
   for (let i = 0; i < 365; i++) {
     const d = new Date(today);
     d.setDate(d.getDate() - i);
@@ -466,13 +467,20 @@ export function buildHabitHealthScore(sessions: Session[]): HabitHealth {
     if (diff < 14) recent14 += s.durationSec;
     else if (diff < 28) prev14 += s.durationSec;
   }
-  
+
   let trend: HabitHealth["trend"] = "stable";
   if (recent14 > prev14 * 1.1) trend = "improving";
   if (recent14 < prev14 * 0.9) trend = "declining";
 
-  const score = Math.min(100, Math.round((streak * 2) + (longTermConsistency * 0.6) + (trend === "improving" ? 10 : trend === "declining" ? -10 : 0)));
-  
+  const score = Math.min(
+    100,
+    Math.round(
+      streak * 2 +
+        longTermConsistency * 0.6 +
+        (trend === "improving" ? 10 : trend === "declining" ? -10 : 0),
+    ),
+  );
+
   return { score: Math.max(0, score), trend, streakDays: streak, longTermConsistency };
 }
 
@@ -485,33 +493,40 @@ export interface DurationEstimate {
   upperBound: number;
 }
 
-export function estimateTaskDuration(taskId: string, tasks: Task[], sessions: Session[]): DurationEstimate | null {
-  const task = tasks.find(t => t.id === taskId);
+export function estimateTaskDuration(
+  taskId: string,
+  tasks: Task[],
+  sessions: Session[],
+): DurationEstimate | null {
+  const task = tasks.find((t) => t.id === taskId);
   if (!task) return null;
-  
-  const focus = sessions.filter(s => s.mode === "focus" && s.subjectId === task.subjectId);
+
+  const focus = sessions.filter((s) => s.mode === "focus" && s.subjectId === task.subjectId);
   if (focus.length < 5) return null; // Need more data for accurate estimation
-  
-  const durations = focus.map(s => s.durationSec / 60).sort((a, b) => a - b);
+
+  const durations = focus.map((s) => s.durationSec / 60).sort((a, b) => a - b);
   const median = durations[Math.floor(durations.length / 2)] ?? 30;
-  
+
   // Calculate standard deviation
   const mean = durations.reduce((a, b) => a + b, 0) / durations.length;
   const variance = durations.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / durations.length;
   const stdDev = Math.sqrt(variance);
-  
+
   const estimated = Math.max(5, Math.round(median));
   const lower = Math.max(5, Math.round(estimated - stdDev));
   const upper = Math.round(estimated + stdDev);
-  
+
   // Confidence based on number of samples and variance
-  const confidence = Math.min(95, Math.round(100 - (stdDev / mean) * 50 + Math.min(focus.length, 20)));
+  const confidence = Math.min(
+    95,
+    Math.round(100 - (stdDev / mean) * 50 + Math.min(focus.length, 20)),
+  );
 
   return {
     estimatedMinutes: estimated,
     lowerBound: lower,
     upperBound: upper,
-    confidence: Math.max(10, confidence)
+    confidence: Math.max(10, confidence),
   };
 }
 
@@ -526,7 +541,7 @@ export interface LifestyleCorrelation {
 function pointBiserialCorrelation(values: number[], group1Indices: Set<number>): number {
   const n = values.length;
   if (n < 2) return 0;
-  
+
   let n1 = 0;
   let sum1 = 0;
   let sum0 = 0;
@@ -561,10 +576,10 @@ function pointBiserialCorrelation(values: number[], group1Indices: Set<number>):
 }
 
 export function buildLifestyleCorrelation(sessions: Session[]): LifestyleCorrelation[] {
-  const focus = sessions.filter(s => s.mode === "focus");
+  const focus = sessions.filter((s) => s.mode === "focus");
   if (focus.length < 10) return [];
 
-  const durations = focus.map(s => s.durationSec);
+  const durations = focus.map((s) => s.durationSec);
   const morningIdx = new Set<number>();
   const eveningIdx = new Set<number>();
   const weekendIdx = new Set<number>();
@@ -580,19 +595,19 @@ export function buildLifestyleCorrelation(sessions: Session[]): LifestyleCorrela
   }
 
   const correlations: LifestyleCorrelation[] = [];
-  
+
   const rMorning = pointBiserialCorrelation(durations, morningIdx);
   if (rMorning > 0.1) {
     correlations.push({
       factor: "Early Morning",
       correlation: Math.round(rMorning * 100),
-      insight: "Morning sessions yield longer focus times."
+      insight: "Morning sessions yield longer focus times.",
     });
   } else if (rMorning < -0.1) {
     correlations.push({
       factor: "Early Morning",
       correlation: Math.round(rMorning * 100),
-      insight: "Morning sessions tend to be shorter."
+      insight: "Morning sessions tend to be shorter.",
     });
   }
 
@@ -601,13 +616,13 @@ export function buildLifestyleCorrelation(sessions: Session[]): LifestyleCorrela
     correlations.push({
       factor: "Late Evening",
       correlation: Math.round(rEvening * 100),
-      insight: "Evening sessions yield longer focus times."
+      insight: "Evening sessions yield longer focus times.",
     });
   } else if (rEvening < -0.1) {
     correlations.push({
       factor: "Late Evening",
       correlation: Math.round(rEvening * 100),
-      insight: "Evening focus tends to be fragmented."
+      insight: "Evening focus tends to be fragmented.",
     });
   }
 
@@ -616,22 +631,22 @@ export function buildLifestyleCorrelation(sessions: Session[]): LifestyleCorrela
     correlations.push({
       factor: "Weekends",
       correlation: Math.round(rWeekend * 100),
-      insight: "Strongest deep work happens on weekends."
+      insight: "Strongest deep work happens on weekends.",
     });
   } else if (rWeekend < -0.1) {
     correlations.push({
       factor: "Weekends",
       correlation: Math.round(rWeekend * 100),
-      insight: "Weekend focus tends to be shorter."
+      insight: "Weekend focus tends to be shorter.",
     });
   }
 
   if (correlations.length === 0) {
-     correlations.push({
-       factor: "Consistent Routine",
-       correlation: 0,
-       insight: "Your focus quality is resilient across different times."
-     });
+    correlations.push({
+      factor: "Consistent Routine",
+      correlation: 0,
+      insight: "Your focus quality is resilient across different times.",
+    });
   }
 
   return correlations.sort((a, b) => Math.abs(b.correlation) - Math.abs(a.correlation));

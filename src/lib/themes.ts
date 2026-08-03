@@ -9,7 +9,7 @@
 export interface ThemeConfig {
   id: string;
   name: string;
-  category: 'dark' | 'dim' | 'warm' | 'cyber' | 'light';
+  category: "dark" | "dim" | "warm" | "cyber" | "light";
   colors: {
     bgPrimary: string;
     bgGlass: string;
@@ -24,262 +24,308 @@ export interface ThemeConfig {
 export const EIGENTIME_THEMES: ThemeConfig[] = [
   // ─── 1. LIGHT — Soft Anti-Glare Light (90% Brightness) ─────────────────────
   {
-    id: 'nordic-frost',
-    name: 'Nordic Frost',
-    category: 'light',
+    id: "nordic-frost",
+    name: "Nordic Frost",
+    category: "light",
     colors: {
-      bgPrimary: '#e2e8f0',           // 90% soft slate ice
-      bgGlass: 'rgba(255, 255, 255, 0.90)',
-      borderGlass: 'rgba(51, 65, 85, 0.16)',
-      textMain: '#0f172a',            // deep slate navy
-      textMuted: '#475569',
-      accent: '#2563eb',             // vivid sapphire
-      accentGlow: 'rgba(37, 99, 235, 0.25)',
+      bgPrimary: "#e2e8f0", // 90% soft slate ice
+      bgGlass: "rgba(255, 255, 255, 0.90)",
+      borderGlass: "rgba(51, 65, 85, 0.16)",
+      textMain: "#0f172a", // deep slate navy
+      textMuted: "#475569",
+      accent: "#2563eb", // vivid sapphire
+      accentGlow: "rgba(37, 99, 235, 0.25)",
     },
   },
   {
-    id: 'gradz-glassgreeny',
-    name: 'Greeny Glass',
-    category: 'light',
+    id: "gradz-glassgreeny",
+    name: "Greeny Glass",
+    category: "light",
     colors: {
-      bgPrimary: '#f8fafc',           // Warm Slate 50
-      bgGlass: 'rgba(255, 255, 255, 0.7)',
-      borderGlass: 'rgba(226, 232, 240, 0.8)',
-      textMain: '#0f172a',            // Slate 900
-      textMuted: '#64748b',           // Slate 500
-      accent: '#059669',              // Emerald 600
-      accentGlow: 'rgba(5, 150, 105, 0.25)',
+      bgPrimary: "#f8fafc", // Warm Slate 50
+      bgGlass: "rgba(255, 255, 255, 0.7)",
+      borderGlass: "rgba(226, 232, 240, 0.8)",
+      textMain: "#0f172a", // Slate 900
+      textMuted: "#64748b", // Slate 500
+      accent: "#059669", // Emerald 600
+      accentGlow: "rgba(5, 150, 105, 0.25)",
     },
   },
   {
-    id: 'soft-alabaster',
-    name: 'Soft Alabaster',
-    category: 'light',
+    id: "soft-alabaster",
+    name: "Soft Alabaster",
+    category: "light",
     colors: {
-      bgPrimary: '#e9ecef',           // 90% soft neutral alabaster
-      bgGlass: 'rgba(255, 255, 255, 0.92)',
-      borderGlass: 'rgba(30, 41, 59, 0.16)',
-      textMain: '#1e293b',
-      textMuted: '#64748b',
-      accent: '#0ea5e9',             // electric sky blue
-      accentGlow: 'rgba(14, 165, 233, 0.25)',
+      bgPrimary: "#e9ecef", // 90% soft neutral alabaster
+      bgGlass: "rgba(255, 255, 255, 0.92)",
+      borderGlass: "rgba(30, 41, 59, 0.16)",
+      textMain: "#1e293b",
+      textMuted: "#64748b",
+      accent: "#0ea5e9", // electric sky blue
+      accentGlow: "rgba(14, 165, 233, 0.25)",
     },
   },
   {
-    id: 'muted-sage',
-    name: 'Muted Sage',
-    category: 'light',
+    id: "muted-sage",
+    name: "Muted Sage",
+    category: "light",
     colors: {
-      bgPrimary: '#e2ebd8',           // 90% soft sage green
-      bgGlass: 'rgba(255, 255, 255, 0.90)',
-      borderGlass: 'rgba(20, 83, 45, 0.16)',
-      textMain: '#064e3b',            // deep forest green
-      textMuted: '#166534',
-      accent: '#10b981',             // emerald accent
-      accentGlow: 'rgba(16, 185, 129, 0.25)',
+      bgPrimary: "#e2ebd8", // 90% soft sage green
+      bgGlass: "rgba(255, 255, 255, 0.90)",
+      borderGlass: "rgba(20, 83, 45, 0.16)",
+      textMain: "#064e3b", // deep forest green
+      textMuted: "#166534",
+      accent: "#10b981", // emerald accent
+      accentGlow: "rgba(16, 185, 129, 0.25)",
     },
   },
 
   // ─── 2. WARM — Soft Warm Paper & Sand (90% Brightness) ──────────────────────
   {
-    id: 'warm-parchment',
-    name: 'Warm Parchment',
-    category: 'warm',
+    id: "warm-parchment",
+    name: "Warm Parchment",
+    category: "warm",
     colors: {
-      bgPrimary: '#ebe5d8',           // 90% soft warm parchment
-      bgGlass: 'rgba(255, 255, 255, 0.90)',
-      borderGlass: 'rgba(120, 53, 15, 0.16)',
-      textMain: '#451a03',            // deep mahogany
-      textMuted: '#78350f',
-      accent: '#d97706',             // rich amber
-      accentGlow: 'rgba(217, 119, 6, 0.25)',
+      bgPrimary: "#ebe5d8", // 90% soft warm parchment
+      bgGlass: "rgba(255, 255, 255, 0.90)",
+      borderGlass: "rgba(120, 53, 15, 0.16)",
+      textMain: "#451a03", // deep mahogany
+      textMuted: "#78350f",
+      accent: "#d97706", // rich amber
+      accentGlow: "rgba(217, 119, 6, 0.25)",
     },
   },
   {
-    id: 'desert-sand',
-    name: 'Desert Sand',
-    category: 'warm',
+    id: "desert-sand",
+    name: "Desert Sand",
+    category: "warm",
     colors: {
-      bgPrimary: '#eee6de',           // 90% soft desert sand
-      bgGlass: 'rgba(255, 255, 255, 0.90)',
-      borderGlass: 'rgba(154, 52, 18, 0.16)',
-      textMain: '#431407',            // deep sienna
-      textMuted: '#9a3412',
-      accent: '#ea580c',             // ember orange
-      accentGlow: 'rgba(234, 88, 12, 0.25)',
+      bgPrimary: "#eee6de", // 90% soft desert sand
+      bgGlass: "rgba(255, 255, 255, 0.90)",
+      borderGlass: "rgba(154, 52, 18, 0.16)",
+      textMain: "#431407", // deep sienna
+      textMuted: "#9a3412",
+      accent: "#ea580c", // ember orange
+      accentGlow: "rgba(234, 88, 12, 0.25)",
     },
   },
   {
-    id: 'soft-rosewood',
-    name: 'Soft Rosewood',
-    category: 'warm',
+    id: "soft-rosewood",
+    name: "Soft Rosewood",
+    category: "warm",
     colors: {
-      bgPrimary: '#f0e4e6',           // 90% soft dusty rose
-      bgGlass: 'rgba(255, 255, 255, 0.90)',
-      borderGlass: 'rgba(159, 18, 57, 0.16)',
-      textMain: '#4c0519',            // deep burgundy
-      textMuted: '#881337',
-      accent: '#e11d48',             // rose accent
-      accentGlow: 'rgba(225, 29, 72, 0.25)',
+      bgPrimary: "#f0e4e6", // 90% soft dusty rose
+      bgGlass: "rgba(255, 255, 255, 0.90)",
+      borderGlass: "rgba(159, 18, 57, 0.16)",
+      textMain: "#4c0519", // deep burgundy
+      textMuted: "#881337",
+      accent: "#e11d48", // rose accent
+      accentGlow: "rgba(225, 29, 72, 0.25)",
     },
   },
 
   // ─── 3. CYBER — Soft Cyber Pastel & Cyber Dark ─────────────────────────────
   {
-    id: 'cyber-lavender',
-    name: 'Cyber Lavender',
-    category: 'cyber',
+    id: "cyber-lavender",
+    name: "Cyber Lavender",
+    category: "cyber",
     colors: {
-      bgPrimary: '#e7e0f2',           // 90% soft lavender mist
-      bgGlass: 'rgba(255, 255, 255, 0.90)',
-      borderGlass: 'rgba(109, 40, 217, 0.18)',
-      textMain: '#2e1065',            // deep violet
-      textMuted: '#5b21b6',
-      accent: '#9333ea',             // vivid purple
-      accentGlow: 'rgba(147, 51, 234, 0.30)',
+      bgPrimary: "#e7e0f2", // 90% soft lavender mist
+      bgGlass: "rgba(255, 255, 255, 0.90)",
+      borderGlass: "rgba(109, 40, 217, 0.18)",
+      textMain: "#2e1065", // deep violet
+      textMuted: "#5b21b6",
+      accent: "#9333ea", // vivid purple
+      accentGlow: "rgba(147, 51, 234, 0.30)",
     },
   },
   {
-    id: 'cyan-ice',
-    name: 'Cyan Ice',
-    category: 'cyber',
+    id: "cyan-ice",
+    name: "Cyan Ice",
+    category: "cyber",
     colors: {
-      bgPrimary: '#deeff2',           // 90% soft cyan ice
-      bgGlass: 'rgba(255, 255, 255, 0.90)',
-      borderGlass: 'rgba(14, 116, 144, 0.18)',
-      textMain: '#083344',            // deep cyan navy
-      textMuted: '#155e75',
-      accent: '#06b6d4',             // electric cyan
-      accentGlow: 'rgba(6, 182, 212, 0.30)',
+      bgPrimary: "#deeff2", // 90% soft cyan ice
+      bgGlass: "rgba(255, 255, 255, 0.90)",
+      borderGlass: "rgba(14, 116, 144, 0.18)",
+      textMain: "#083344", // deep cyan navy
+      textMuted: "#155e75",
+      accent: "#06b6d4", // electric cyan
+      accentGlow: "rgba(6, 182, 212, 0.30)",
     },
   },
   {
-    id: 'neon-synth',
-    name: 'Neon Synth',
-    category: 'cyber',
+    id: "neon-synth",
+    name: "Neon Synth",
+    category: "cyber",
     colors: {
-      bgPrimary: '#120924',           // deep synth dark
-      bgGlass: 'rgba(28, 14, 52, 0.92)',
-      borderGlass: 'rgba(232, 121, 249, 0.40)',
-      textMain: '#fae8ff',
-      textMuted: '#f0abfc',
-      accent: '#e879f9',
-      accentGlow: 'rgba(232, 121, 249, 0.60)',
+      bgPrimary: "#120924", // deep synth dark
+      bgGlass: "rgba(28, 14, 52, 0.92)",
+      borderGlass: "rgba(232, 121, 249, 0.40)",
+      textMain: "#fae8ff",
+      textMuted: "#f0abfc",
+      accent: "#e879f9",
+      accentGlow: "rgba(232, 121, 249, 0.60)",
     },
   },
 
   // ─── 4. DIM — Soft Mid-Tone Neutrals ─────────────────────────────────────────
   {
-    id: 'slate-fog',
-    name: 'Slate Fog',
-    category: 'dim',
+    id: "slate-fog",
+    name: "Slate Fog",
+    category: "dim",
     colors: {
-      bgPrimary: '#dbe2e9',           // 90% soft slate fog
-      bgGlass: 'rgba(255, 255, 255, 0.90)',
-      borderGlass: 'rgba(71, 85, 105, 0.18)',
-      textMain: '#1e293b',
-      textMuted: '#475569',
-      accent: '#4f46e5',             // indigo
-      accentGlow: 'rgba(79, 70, 229, 0.25)',
+      bgPrimary: "#dbe2e9", // 90% soft slate fog
+      bgGlass: "rgba(255, 255, 255, 0.90)",
+      borderGlass: "rgba(71, 85, 105, 0.18)",
+      textMain: "#1e293b",
+      textMuted: "#475569",
+      accent: "#4f46e5", // indigo
+      accentGlow: "rgba(79, 70, 229, 0.25)",
     },
   },
   {
-    id: 'muted-steel',
-    name: 'Muted Steel',
-    category: 'dim',
+    id: "muted-steel",
+    name: "Muted Steel",
+    category: "dim",
     colors: {
-      bgPrimary: '#e5e7eb',           // 90% soft neutral steel
-      bgGlass: 'rgba(255, 255, 255, 0.92)',
-      borderGlass: 'rgba(55, 65, 81, 0.18)',
-      textMain: '#111827',
-      textMuted: '#4b5563',
-      accent: '#3b82f6',             // royal blue
-      accentGlow: 'rgba(59, 130, 246, 0.25)',
+      bgPrimary: "#e5e7eb", // 90% soft neutral steel
+      bgGlass: "rgba(255, 255, 255, 0.92)",
+      borderGlass: "rgba(55, 65, 81, 0.18)",
+      textMain: "#111827",
+      textMuted: "#4b5563",
+      accent: "#3b82f6", // royal blue
+      accentGlow: "rgba(59, 130, 246, 0.25)",
     },
   },
   {
-    id: 'dusk-slate-dark',
-    name: 'Dusk Slate Dark',
-    category: 'dim',
+    id: "dusk-slate-dark",
+    name: "Dusk Slate Dark",
+    category: "dim",
     colors: {
-      bgPrimary: '#1e2430',           // dimmed slate dark
-      bgGlass: 'rgba(35, 43, 56, 0.92)',
-      borderGlass: 'rgba(148, 163, 184, 0.25)',
-      textMain: '#f8fafc',
-      textMuted: '#cbd5e1',
-      accent: '#60a5fa',
-      accentGlow: 'rgba(96, 165, 250, 0.40)',
+      bgPrimary: "#1e2430", // dimmed slate dark
+      bgGlass: "rgba(35, 43, 56, 0.92)",
+      borderGlass: "rgba(148, 163, 184, 0.25)",
+      textMain: "#f8fafc",
+      textMuted: "#cbd5e1",
+      accent: "#60a5fa",
+      accentGlow: "rgba(96, 165, 250, 0.40)",
     },
   },
 
   // ─── 5. DARK — Ultra Dark & OLED ─────────────────────────────────────────────
   {
-    id: 'oled-black',
-    name: 'OLED Pitch Black',
-    category: 'dark',
+    id: "oled-black",
+    name: "OLED Pitch Black",
+    category: "dark",
     colors: {
-      bgPrimary: '#000000',
-      bgGlass: 'rgba(18, 18, 22, 0.92)',
-      borderGlass: 'rgba(255, 255, 255, 0.18)',
-      textMain: '#ffffff',
-      textMuted: '#a1a1aa',
-      accent: '#3b82f6',
-      accentGlow: 'rgba(59, 130, 246, 0.50)',
+      bgPrimary: "#000000",
+      bgGlass: "rgba(18, 18, 22, 0.92)",
+      borderGlass: "rgba(255, 255, 255, 0.18)",
+      textMain: "#ffffff",
+      textMuted: "#a1a1aa",
+      accent: "#3b82f6",
+      accentGlow: "rgba(59, 130, 246, 0.50)",
     },
   },
   {
-    id: 'elysium-night',
-    name: 'Elysium Night',
-    category: 'dark',
+    id: "elysium-night",
+    name: "Elysium Night",
+    category: "dark",
     colors: {
-      bgPrimary: '#070a13',
-      bgGlass: 'rgba(15, 22, 38, 0.92)',
-      borderGlass: 'rgba(59, 130, 246, 0.35)',
-      textMain: '#f8fafc',
-      textMuted: '#94a3b8',
-      accent: '#3b82f6',
-      accentGlow: 'rgba(59, 130, 246, 0.50)',
+      bgPrimary: "#070a13",
+      bgGlass: "rgba(15, 22, 38, 0.92)",
+      borderGlass: "rgba(59, 130, 246, 0.35)",
+      textMain: "#f8fafc",
+      textMuted: "#94a3b8",
+      accent: "#3b82f6",
+      accentGlow: "rgba(59, 130, 246, 0.50)",
     },
   },
   {
-    id: 'midnight-emerald',
-    name: 'Midnight Emerald',
-    category: 'dark',
+    id: "midnight-emerald",
+    name: "Midnight Emerald",
+    category: "dark",
     colors: {
-      bgPrimary: '#02120b',
-      bgGlass: 'rgba(6, 32, 22, 0.92)',
-      borderGlass: 'rgba(16, 185, 129, 0.35)',
-      textMain: '#ecfdf5',
-      textMuted: '#6ee7b7',
-      accent: '#10b981',
-      accentGlow: 'rgba(16, 185, 129, 0.50)',
+      bgPrimary: "#02120b",
+      bgGlass: "rgba(6, 32, 22, 0.92)",
+      borderGlass: "rgba(16, 185, 129, 0.35)",
+      textMain: "#ecfdf5",
+      textMuted: "#6ee7b7",
+      accent: "#10b981",
+      accentGlow: "rgba(16, 185, 129, 0.50)",
     },
   },
 ];
 
 // ─── Category Labels ──────────────────────────────────────────────────────────
 
-export const CATEGORY_LABELS: Record<ThemeConfig['category'], string> = {
-  light: '☀️ Soft Light (90% Anti-Glare)',
-  warm:  '🌅 Warm Paper & Sand',
-  cyber: '⚡ Cyber Pastel',
-  dim:   '🌘 Dimmed Neutrals',
-  dark:  '🌑 Ultra Dark / OLED',
+export const CATEGORY_LABELS: Record<ThemeConfig["category"], string> = {
+  light: "☀️ Soft Light (90% Anti-Glare)",
+  warm: "🌅 Warm Paper & Sand",
+  cyber: "⚡ Cyber Pastel",
+  dim: "🌘 Dimmed Neutrals",
+  dark: "🌑 Ultra Dark / OLED",
 };
 
 // ─── Persistence ──────────────────────────────────────────────────────────────
 
-const STORAGE_KEY    = 'eigentime-theme';
-const DEFAULT_THEME  = 'nordic-frost';
+const STORAGE_KEY = "eigentime-theme";
+const CUSTOM_HEX_KEY = "eigentime-custom-hex";
+const DEFAULT_THEME = "nordic-frost";
 
-export function applyTheme(themeId: string): void {
-  const theme = EIGENTIME_THEMES.find((t) => t.id === themeId) ?? EIGENTIME_THEMES[0]!;
-  const root  = document.documentElement;
+function hexToRgb(hex: string) {
+  const c = hex.replace("#", "");
+  return {
+    r: parseInt(c.substring(0, 2), 16) || 0,
+    g: parseInt(c.substring(2, 4), 16) || 0,
+    b: parseInt(c.substring(4, 6), 16) || 0,
+  };
+}
 
-  const isDark = theme.category === 'dark' || theme.id === 'neon-synth' || theme.id === 'dusk-slate-dark';
-  const primaryFg = isDark ? '#000000' : '#ffffff';
-  const secondary = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)';
-  const muted = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)';
+export function generateCustomTheme(hex: string, isDark: boolean): ThemeConfig {
+  const { r, g, b } = hexToRgb(hex);
+  
+  if (isDark) {
+    return {
+      id: "custom",
+      name: "Custom Theme",
+      category: "dark",
+      colors: {
+        bgPrimary: "#0f172a", // Dark slate background
+        bgGlass: `rgba(${r}, ${g}, ${b}, 0.1)`,
+        borderGlass: `rgba(${r}, ${g}, ${b}, 0.3)`,
+        textMain: "#f8fafc",
+        textMuted: "#94a3b8",
+        accent: hex,
+        accentGlow: `rgba(${r}, ${g}, ${b}, 0.4)`,
+      },
+    };
+  } else {
+    return {
+      id: "custom",
+      name: "Custom Theme",
+      category: "light",
+      colors: {
+        bgPrimary: "#f8fafc", // Light slate background
+        bgGlass: "rgba(255, 255, 255, 0.7)",
+        borderGlass: `rgba(${r}, ${g}, ${b}, 0.4)`,
+        textMain: "#0f172a",
+        textMuted: "#475569",
+        accent: hex,
+        accentGlow: `rgba(${r}, ${g}, ${b}, 0.25)`,
+      },
+    };
+  }
+}
+
+export function applyThemeConfig(theme: ThemeConfig): void {
+  const root = document.documentElement;
+
+  const isDark =
+    theme.category === "dark" || theme.category === "dim" || theme.id === "neon-synth" || theme.id === "dusk-slate-dark";
+  const primaryFg = isDark ? "#000000" : "#ffffff";
+  const secondary = isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.06)";
+  const muted = isDark ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.04)";
 
   root.style.cssText = `
     --bg-primary: ${theme.colors.bgPrimary};
@@ -312,22 +358,65 @@ export function applyTheme(themeId: string): void {
     --muted: ${muted};
   `;
 
-  root.setAttribute('data-theme',          theme?.id);
-  root.setAttribute('data-theme-category', theme?.category);
+  root.setAttribute("data-theme", theme?.id);
+  root.setAttribute("data-theme-category", theme?.category);
 
   if (isDark) {
-    root.classList.add('dark');
+    root.classList.add("dark");
   } else {
-    root.classList.remove('dark');
+    root.classList.remove("dark");
+  }
+}
+
+export function applyTheme(themeId: string, customHex?: string, isDark?: boolean): void {
+  if (themeId === "custom" && customHex) {
+    const customConfig = generateCustomTheme(customHex, isDark ?? false);
+    applyThemeConfig(customConfig);
+    try {
+      localStorage.setItem(STORAGE_KEY, "custom");
+      localStorage.setItem(CUSTOM_HEX_KEY, customHex);
+      localStorage.setItem("eigentime-custom-is-dark", isDark ? "true" : "false");
+    } catch {}
+    return;
   }
 
-  try { localStorage.setItem(STORAGE_KEY, theme.id); } catch { /* SSR guard */ }
+  const theme = EIGENTIME_THEMES.find((t) => t.id === themeId) ?? EIGENTIME_THEMES[0]!;
+  applyThemeConfig(theme);
+
+  try {
+    localStorage.setItem(STORAGE_KEY, theme.id);
+  } catch {
+    /* SSR guard */
+  }
 }
 
 export function getSavedThemeId(): string {
-  try { return localStorage.getItem(STORAGE_KEY) ?? DEFAULT_THEME; } catch { return DEFAULT_THEME; }
+  try {
+    return localStorage.getItem(STORAGE_KEY) ?? DEFAULT_THEME;
+  } catch {
+    return DEFAULT_THEME;
+  }
+}
+
+export function getSavedCustomHex(): string | null {
+  try {
+    return localStorage.getItem(CUSTOM_HEX_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function getSavedCustomIsDark(): boolean {
+  try {
+    return localStorage.getItem("eigentime-custom-is-dark") === "true";
+  } catch {
+    return false;
+  }
 }
 
 export function getThemeById(id: string): ThemeConfig {
+  if (id === "custom") {
+    return generateCustomTheme(getSavedCustomHex() ?? "#3b82f6", getSavedCustomIsDark());
+  }
   return EIGENTIME_THEMES.find((t) => t.id === id) ?? EIGENTIME_THEMES[0]!;
 }

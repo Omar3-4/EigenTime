@@ -86,7 +86,12 @@ export function useTrayBridge(snap: TimerSnapshot, callbacks: TrayBridgeCallback
       if (!running && current.accumulatedSec === 0) {
         label = "Idle";
       } else if (current.mode === "pomodoro") {
-        const phase = current.pomoPhase === "focus" ? "Focus" : current.pomoPhase === "break" ? "Break" : "Done";
+        const phase =
+          current.pomoPhase === "focus"
+            ? "Focus"
+            : current.pomoPhase === "break"
+              ? "Break"
+              : "Done";
         const rem = remainingSeconds(current, now);
         label = rem === Infinity ? `${phase}: running` : `${phase}: ${formatHMS(rem)}`;
       } else {

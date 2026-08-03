@@ -93,30 +93,37 @@ export async function saveSession(input: {
   scratchpadNotes?: string[];
 }): Promise<void> {
   const db = getDb();
-  
+
   let fei = 0;
   let xp = 0;
 
   if (input.mode === "focus") {
     const pauseCount = input.pauseCount ?? 0;
     const pauseDur = input.pauseDurationSec ?? 0;
-    const target = (input.targetSec && input.targetSec > 0) ? input.targetSec : Math.max(input.durationSec, 1);
-    
+    const target =
+      input.targetSec && input.targetSec > 0 ? input.targetSec : Math.max(input.durationSec, 1);
+
     // FEI = MAX(0, 100 - (Pause Count × 2) - ((Pause Duration Sec / Target Sec) × 100))
-    fei = Math.max(0, 100 - (pauseCount * 2) - ((pauseDur / target) * 100));
-    
-    const diffMult = input.difficulty === 1 ? 1.0 :
-                     input.difficulty === 2 ? 1.2 :
-                     input.difficulty === 3 ? 1.5 :
-                     input.difficulty === 4 ? 2.0 : 2.5;
-    
+    fei = Math.max(0, 100 - pauseCount * 2 - (pauseDur / target) * 100);
+
+    const diffMult =
+      input.difficulty === 1
+        ? 1.0
+        : input.difficulty === 2
+          ? 1.2
+          : input.difficulty === 3
+            ? 1.5
+            : input.difficulty === 4
+              ? 2.0
+              : 2.5;
+
     const durMins = input.durationSec / 60;
-    xp = (durMins * 10 * diffMult) * (fei / 100);
+    xp = durMins * 10 * diffMult * (fei / 100);
   }
 
-  const session: Session = { 
-    id: uid(), 
-    day: dayKey(input.startedAt), 
+  const session: Session = {
+    id: uid(),
+    day: dayKey(input.startedAt),
     subjectId: input.subjectId,
     startedAt: input.startedAt,
     endedAt: input.endedAt,
@@ -186,11 +193,7 @@ export async function allSessions(): Promise<Session[]> {
  */
 export async function sessionsInRange(days = 365): Promise<Session[]> {
   const cutoff = Date.now() - days * 86_400_000;
-  return getDb()
-    .sessions
-    .where("startedAt")
-    .aboveOrEqual(cutoff)
-    .sortBy("startedAt");
+  return getDb().sessions.where("startedAt").aboveOrEqual(cutoff).sortBy("startedAt");
 }
 
 export async function weeklySecondsBySubject(): Promise<Record<string, number>> {
@@ -203,7 +206,6 @@ export async function weeklySecondsBySubject(): Promise<Record<string, number>> 
   }
   return out;
 }
-
 
 export async function getTotalXP(): Promise<number> {
   const sessions = await getDb().sessions.toArray();
@@ -297,7 +299,9 @@ export function scheduleTimerPersist(snapshot: TimerSnapshot): void {
       const snapToSave = _pendingSnap;
       _pendingSnap = null;
       if (typeof window !== "undefined" && "requestIdleCallback" in window) {
-        (window as any).requestIdleCallback(() => void persistTimer(snapToSave));
+        (
+          window as unknown as { requestIdleCallback: (cb: () => void) => void }
+        ).requestIdleCallback(() => void persistTimer(snapToSave));
       } else {
         void persistTimer(snapToSave);
       }
@@ -313,8 +317,6 @@ export async function persistTimer(snapshot: TimerSnapshot | null): Promise<void
     await getDb().timerSnapshots.put({ id: "current", snapshot });
   }
 }
-
-
 
 export async function exportAll(): Promise<string> {
   const db = getDb();
@@ -335,9 +337,9 @@ export async function exportCsv(): Promise<string> {
   const db = getDb();
   const sessions = await db.sessions.toArray();
   const subjects = await db.subjects.toArray();
-  
-  const subjectMap = new Map(subjects.map(s => [s.id, s.name]));
-  
+
+  const subjectMap = new Map(subjects.map((s) => [s.id, s.name]));
+
   let csv = "ID,Date,Subject,Mode,Duration (seconds),Difficulty,FEI,XP,Note\n";
   for (const s of sessions) {
     const subName = s.subjectId ? (subjectMap.get(s.subjectId) ?? "Unknown") : "None";
@@ -352,21 +354,21 @@ export async function exportMarkdown(): Promise<string> {
   const db = getDb();
   const sessions = await db.sessions.toArray();
   const subjects = await db.subjects.toArray();
-  
-  const subjectMap = new Map(subjects.map(s => [s.id, s.name]));
-  
+
+  const subjectMap = new Map(subjects.map((s) => [s.id, s.name]));
+
   let md = "# EigenTime Data Export\n\n";
-  
+
   md += "## Subjects\n\n";
   for (const s of subjects) {
     md += `- **${s.name}** (Target: ${s.weeklyTargetHours}h/week)\n`;
   }
-  
+
   md += "\n## Sessions\n\n";
   md += "| Date | Subject | Mode | Duration | XP | FEI |\n";
   md += "|---|---|---|---|---|---|\n";
-  
-  const recent = sessions.sort((a,b) => b.startedAt - a.startedAt).slice(0, 100);
+
+  const recent = sessions.sort((a, b) => b.startedAt - a.startedAt).slice(0, 100);
   for (const s of recent) {
     const subName = s.subjectId ? (subjectMap.get(s.subjectId) ?? "Unknown") : "None";
     const date = new Date(s.startedAt).toLocaleDateString();
@@ -375,11 +377,11 @@ export async function exportMarkdown(): Promise<string> {
     const fei = s.fei ? s.fei.toFixed(0) : "-";
     md += `| ${date} | ${subName} | ${s.mode} | ${dur} | ${xp} | ${fei} |\n`;
   }
-  
+
   if (sessions.length > 100) {
     md += `\n*(Showing last 100 out of ${sessions.length} sessions)*\n`;
   }
-  
+
   return md;
 }
 
@@ -398,9 +400,9 @@ export async function importAll(json: string): Promise<void> {
     throw new Error("Backup file is malformed.");
   }
   const data = rawData as Record<string, unknown>;
-  
+
   if (data["app"] !== "EigenTime") {
-    throw new Error('Backup does not appear to be an EigenTime export (missing app field).');
+    throw new Error("Backup does not appear to be an EigenTime export (missing app field).");
   }
   const ver = data["version"] as number | undefined;
   if (!ver || ver > EXPORT_VERSION) {
@@ -413,12 +415,14 @@ export async function importAll(json: string): Promise<void> {
   const validationResult = EigenTimeBackupSchema.safeParse(rawData);
   if (!validationResult.success) {
     console.error("Zod Validation Error:", validationResult.error);
-    const issues = validationResult.error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join(", ");
+    const issues = validationResult.error.issues
+      .map((i) => `${i.path.join(".")}: ${i.message}`)
+      .join(", ");
     throw new Error(`Data integrity check failed: ${issues}`);
   }
-  
+
   const validData = validationResult.data;
-  
+
   const db = getDb();
   await db.transaction(
     "rw",
@@ -434,7 +438,8 @@ export async function importAll(json: string): Promise<void> {
       if (data["subjects"]) await db.subjects.bulkAdd(data["subjects"] as Subject[]);
       if (data["sessions"]) await db.sessions.bulkAdd(data["sessions"] as Session[]);
       if (data["tasks"]) await db.tasks.bulkAdd(data["tasks"] as Task[]);
-      if (data["scheduleBlocks"]) await db.scheduleBlocks.bulkAdd(data["scheduleBlocks"] as ScheduleBlock[]);
+      if (data["scheduleBlocks"])
+        await db.scheduleBlocks.bulkAdd(data["scheduleBlocks"] as ScheduleBlock[]);
       if (data["settings"]) await db.settings.bulkPut(data["settings"] as SettingsRecord[]);
     },
   );

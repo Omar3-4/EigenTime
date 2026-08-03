@@ -12,7 +12,7 @@ const ACTIVITIES = [
   "Move: Stand up and walk around the room for 1 minute.",
   "Mind: Close your eyes and clear your thoughts for 30 seconds.",
   "Body: Do 5 slow, deep squats to get blood flowing.",
-  "Reset: Step completely away from all screens for 2 minutes."
+  "Reset: Step completely away from all screens for 2 minutes.",
 ];
 
 let deck: string[] = [];

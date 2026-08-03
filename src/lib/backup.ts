@@ -11,12 +11,12 @@ export async function performAutomatedBackup(): Promise<void> {
 
     if (now - lastBackupTime > SEVEN_DAYS_MS) {
       console.log("Starting automated weekly backup...");
-      
+
       const backupData = await exportAll();
       const dateString = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
       const fileName = `eigentime-backup-${dateString}.json`;
       const backupDirPath = "EigenTime_Backups";
-      
+
       // Ensure the directory exists
       const dirExists = await exists(backupDirPath, { baseDir: BaseDirectory.Document });
       if (!dirExists) {
@@ -25,7 +25,7 @@ export async function performAutomatedBackup(): Promise<void> {
 
       const filePath = `${backupDirPath}/${fileName}`;
       await writeTextFile(filePath, backupData, { baseDir: BaseDirectory.Document });
-      
+
       await setSetting("lastBackupTimestamp", now);
       console.log(`Automated backup successful: ${filePath}`);
     }

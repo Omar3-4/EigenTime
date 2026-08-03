@@ -11,10 +11,12 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
+import { Route as EyeRestRouteImport } from './routes/eye-rest'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SubjectsRouteImport } from './routes/subjects'
 import { Route as TasksRouteImport } from './routes/tasks'
 import { Route as TimerRouteImport } from './routes/timer'
+import { Route as WidgetRouteImport } from './routes/widget'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -24,6 +26,11 @@ const IndexRoute = IndexRouteImport.update({
 const AnalyticsRoute = AnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EyeRestRoute = EyeRestRouteImport.update({
+  id: '/eye-rest',
+  path: '/eye-rest',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -46,55 +53,85 @@ const TimerRoute = TimerRouteImport.update({
   path: '/timer',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WidgetRoute = WidgetRouteImport.update({
+  id: '/widget',
+  path: '/widget',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
+  '/eye-rest': typeof EyeRestRoute
   '/settings': typeof SettingsRoute
   '/subjects': typeof SubjectsRoute
   '/tasks': typeof TasksRoute
   '/timer': typeof TimerRoute
+  '/widget': typeof WidgetRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
+  '/eye-rest': typeof EyeRestRoute
   '/settings': typeof SettingsRoute
   '/subjects': typeof SubjectsRoute
   '/tasks': typeof TasksRoute
   '/timer': typeof TimerRoute
+  '/widget': typeof WidgetRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
+  '/eye-rest': typeof EyeRestRoute
   '/settings': typeof SettingsRoute
   '/subjects': typeof SubjectsRoute
   '/tasks': typeof TasksRoute
   '/timer': typeof TimerRoute
+  '/widget': typeof WidgetRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/analytics' | '/settings' | '/subjects' | '/tasks' | '/timer'
-  fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/analytics' | '/settings' | '/subjects' | '/tasks' | '/timer'
-  id:
-    | '__root__'
     | '/'
     | '/analytics'
+    | '/eye-rest'
     | '/settings'
     | '/subjects'
     | '/tasks'
     | '/timer'
+    | '/widget'
+  fileRoutesByTo: FileRoutesByTo
+  to:
+    | '/'
+    | '/analytics'
+    | '/eye-rest'
+    | '/settings'
+    | '/subjects'
+    | '/tasks'
+    | '/timer'
+    | '/widget'
+  id:
+    | '__root__'
+    | '/'
+    | '/analytics'
+    | '/eye-rest'
+    | '/settings'
+    | '/subjects'
+    | '/tasks'
+    | '/timer'
+    | '/widget'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AnalyticsRoute: typeof AnalyticsRoute
+  EyeRestRoute: typeof EyeRestRoute
   SettingsRoute: typeof SettingsRoute
   SubjectsRoute: typeof SubjectsRoute
   TasksRoute: typeof TasksRoute
   TimerRoute: typeof TimerRoute
+  WidgetRoute: typeof WidgetRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -111,6 +148,13 @@ declare module '@tanstack/react-router' {
       path: '/analytics'
       fullPath: '/analytics'
       preLoaderRoute: typeof AnalyticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/eye-rest': {
+      id: '/eye-rest'
+      path: '/eye-rest'
+      fullPath: '/eye-rest'
+      preLoaderRoute: typeof EyeRestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -141,16 +185,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TimerRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/widget': {
+      id: '/widget'
+      path: '/widget'
+      fullPath: '/widget'
+      preLoaderRoute: typeof WidgetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnalyticsRoute: AnalyticsRoute,
+  EyeRestRoute: EyeRestRoute,
   SettingsRoute: SettingsRoute,
   SubjectsRoute: SubjectsRoute,
   TasksRoute: TasksRoute,
   TimerRoute: TimerRoute,
+  WidgetRoute: WidgetRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

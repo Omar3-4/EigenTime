@@ -28,9 +28,7 @@ export async function notify(title: string, body: string) {
  */
 export async function notifyPhaseComplete(phase: "focus" | "break") {
   const isFocusDone = phase === "focus";
-  const title = isFocusDone
-    ? "🎯 Deep Work Session Finished!"
-    : "⚡ Break Over — Back to Flow!";
+  const title = isFocusDone ? "🎯 Deep Work Session Finished!" : "⚡ Break Over — Back to Flow!";
   const body = isFocusDone
     ? "You crushed it. Time for a well-deserved break."
     : "Ready to step back into your flow state?";
@@ -51,7 +49,8 @@ export async function requestNotificationPermission() {
   if (isTauri()) {
     let permissionGranted = false;
     try {
-      const { isPermissionGranted, requestPermission } = await import("@tauri-apps/plugin-notification");
+      const { isPermissionGranted, requestPermission } =
+        await import("@tauri-apps/plugin-notification");
       permissionGranted = await isPermissionGranted();
       if (!permissionGranted) {
         const permission = await requestPermission();

@@ -10,13 +10,11 @@ const TWENTY_MINUTES_SEC = 20 * 60;
 export function EyeTimerWatcher() {
   const snapRow = useLiveQuery(() => getDb().timerSnapshots.get("current"), [], null);
   const snap = snapRow?.snapshot;
-  
+
   const notifEnabled = useLiveQuery(() => getSetting("notificationsEnabled", true), [], true);
 
   // Read accumulator from local storage to persist across reloads
-  const accRef = useRef<number>(
-    parseInt(localStorage.getItem("eyeAcc") || "0", 10)
-  );
+  const accRef = useRef<number>(parseInt(localStorage.getItem("eyeAcc") || "0", 10));
 
   useEffect(() => {
     if (!snap || !isRunning(snap)) return;
@@ -29,11 +27,11 @@ export function EyeTimerWatcher() {
         // Trigger 20-20-20
         accRef.current = 0;
         localStorage.setItem("eyeAcc", "0");
-        
+
         if (notifEnabled) {
           notify(
             "20-20-20 Eye Break!",
-            "Look at something 20 feet away for 20 seconds to protect your eyes."
+            "Look at something 20 feet away for 20 seconds to protect your eyes.",
           );
         }
       }

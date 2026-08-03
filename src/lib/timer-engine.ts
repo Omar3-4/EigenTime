@@ -17,13 +17,7 @@ import type { TimerSnapshot } from "./db";
 export type TimerMode = "stopwatch" | "pomodoro";
 export type PomodoroPhase = "focus" | "break" | "completed";
 export type TimerAction =
-  | "start"
-  | "pause"
-  | "resume"
-  | "reset"
-  | "skip"
-  | "configure"
-  | "finish_phase"; // advance pomo to next phase
+  "start" | "pause" | "resume" | "reset" | "skip" | "configure" | "finish_phase"; // advance pomo to next phase
 
 // ─── Default values ────────────────────────────────────────────────────────────
 
@@ -90,9 +84,10 @@ export function progress(snap: TimerSnapshot, now = Date.now()): number {
 /** Total accumulated FOCUS seconds (for session save). */
 export function totalFocusSec(snap: TimerSnapshot, now = Date.now()): number {
   if (snap.mode !== "pomodoro") return elapsedSeconds(snap, now);
-  const extra = snap.pomoPhase === "focus" && snap.runningSince
-    ? elapsedSeconds(snap, now)
-    : snap.accumulatedSec;
+  const extra =
+    snap.pomoPhase === "focus" && snap.runningSince
+      ? elapsedSeconds(snap, now)
+      : snap.accumulatedSec;
   return (snap.pomoAccumulatedFocusSec ?? 0) + (snap.pomoPhase === "focus" ? extra : 0);
 }
 
@@ -105,9 +100,9 @@ export function reduceTimer(
 ): TimerSnapshot {
   switch (action) {
     case "start":
-    case "resume":
+    case "resume": {
       if (snap.runningSince) return snap;
-      
+
       let newPauseDuration = snap.pauseDurationSec ?? 0;
       if (snap.pausedAt) {
         newPauseDuration += (now - snap.pausedAt) / 1000;
@@ -133,6 +128,7 @@ export function reduceTimer(
         pausedAt: null,
         pauseDurationSec: newPauseDuration,
       };
+    }
 
     case "pause":
       if (!snap.runningSince) return snap;

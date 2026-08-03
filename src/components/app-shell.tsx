@@ -51,15 +51,13 @@ export function AppShell({ children, title }: { children: ReactNode; title: stri
       <EyeTimerWatcher />
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col gap-2 p-4 md:flex">
         <div className="glass flex items-center gap-3 rounded-2xl px-4 py-4">
-          <div
-            className="flex size-10 items-center justify-center rounded-xl text-primary-foreground"
-            style={{ background: "var(--gradient-focus)" }}
-          >
-            <Gauge className="size-5" />
-          </div>
+          <img
+            src="/app-icon.png"
+            alt="EigenTime Icon"
+            className="size-10 rounded-xl object-contain drop-shadow-sm"
+          />
           <div className="min-w-0">
             <p className="truncate font-display text-base font-semibold">{t("appName")}</p>
-            <p className="truncate text-xs text-muted-foreground">{t("tagline")}</p>
           </div>
         </div>
 
@@ -83,7 +81,6 @@ export function AppShell({ children, title }: { children: ReactNode; title: stri
               </Link>
             );
           })}
-
         </nav>
       </aside>
 
@@ -91,9 +88,7 @@ export function AppShell({ children, title }: { children: ReactNode; title: stri
         <header className="sticky top-0 z-20 px-4 pt-4">
           <div className="glass flex items-center gap-3 rounded-2xl px-4 py-3">
             <h1 className="min-w-0 flex-1 truncate font-display text-lg font-semibold">{title}</h1>
-            <p className="hidden text-sm text-muted-foreground sm:block">
-              {today}
-            </p>
+            <p className="hidden text-sm text-muted-foreground sm:block">{today}</p>
             <button
               type="button"
               onClick={() => setLang(lang === "en" ? "ar" : "en")}

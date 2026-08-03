@@ -21,6 +21,7 @@ export interface Session {
   endedAt: number;
   durationSec: number;
   mode: "focus" | "rest";
+  topic?: string;
   difficulty: 1 | 2 | 3 | 4 | 5;
   note?: string;
   /** yyyy-mm-dd local day key, indexed for fast day roll-ups */
@@ -65,6 +66,7 @@ export interface DailyStat {
 
 export interface TimerSnapshot {
   subjectId: UUID | null;
+  topic?: string;
   targetSec: number;
   accumulatedSec: number;
   runningSince: number | null;
@@ -94,11 +96,11 @@ export interface TimerSnapshot {
   pomoAccumulatedFocusSec?: number;
 
   // Expansion fields:
-  playlist?: { 
-    subjectId: string | null; 
-    mode: "stopwatch" | "pomodoro"; 
-    pomoFocusSec?: number; 
-    pomoBreakSec?: number; 
+  playlist?: {
+    subjectId: string | null;
+    mode: "stopwatch" | "pomodoro";
+    pomoFocusSec?: number;
+    pomoBreakSec?: number;
     pomoRounds?: number;
     targetSec?: number;
   }[];
@@ -120,6 +122,11 @@ export interface TimerSnapshotRecord {
   snapshot: TimerSnapshot;
 }
 
+export interface UserBadge {
+  id: string; // e.g. "deep_diver", "iron_will"
+  unlockedAt: number;
+}
+
 export class EigenTimeDB extends Dexie {
   subjects!: Table<Subject, string>;
   sessions!: Table<Session, string>;
@@ -128,6 +135,7 @@ export class EigenTimeDB extends Dexie {
   dailyStats!: Table<DailyStat, string>;
   settings!: Table<SettingsRecord, string>;
   timerSnapshots!: Table<TimerSnapshotRecord, string>;
+  badges!: Table<UserBadge, string>;
 
   constructor() {
     super("eigentime");
@@ -139,20 +147,25 @@ export class EigenTimeDB extends Dexie {
       dailyStats: "day",
       settings: "key",
     });
-    this.version(2).stores({
-      timerSnapshots: "id",
-    }).upgrade(async (tx) => {
-      try {
-        const old = await tx.table("settings").get("timerSnapshot");
-        if (old && old.value) {
-          await tx.table("timerSnapshots").put({ id: "current", snapshot: old.value });
+    this.version(2)
+      .stores({
+        timerSnapshots: "id",
+      })
+      .upgrade(async (tx) => {
+        try {
+          const old = await tx.table("settings").get("timerSnapshot");
+          if (old && old.value) {
+            await tx.table("timerSnapshots").put({ id: "current", snapshot: old.value });
+          }
+        } catch (e) {
+          console.warn("Migration v2 failed:", e);
         }
-      } catch (e) {
-        console.warn("Migration v2 failed:", e);
-      }
-    });
+      });
     this.version(3).stores({});
     this.version(4).stores({});
+    this.version(5).stores({
+      badges: "id, unlockedAt",
+    });
   }
 }
 

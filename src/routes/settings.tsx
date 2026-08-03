@@ -79,8 +79,11 @@ function SettingsSuite() {
 
   // Stored Settings
   const goal =
-    useLiveQuery(() => getSetting("dailyGoalHours", DEFAULT_DAILY_GOAL_HOURS, z.number()), [], null) ??
-    DEFAULT_DAILY_GOAL_HOURS;
+    useLiveQuery(
+      () => getSetting("dailyGoalHours", DEFAULT_DAILY_GOAL_HOURS, z.number()),
+      [],
+      null,
+    ) ?? DEFAULT_DAILY_GOAL_HOURS;
   const focusDuration =
     useLiveQuery(() => getSetting("defaultFocusDuration", 25, z.number()), [], null) ?? 25;
   const shortBreak =
@@ -90,14 +93,14 @@ function SettingsSuite() {
   const autoStartBreaks =
     useLiveQuery(() => getSetting("autoStartBreaks", false, z.boolean()), [], null) ?? false;
   const fatigueSensitivity =
-    useLiveQuery(() => getSetting("fatigueSensitivity", "medium", z.string()), [], null) ?? "medium";
+    useLiveQuery(() => getSetting("fatigueSensitivity", "medium", z.string()), [], null) ??
+    "medium";
   const deepFlowThreshold =
     useLiveQuery(() => getSetting("deepFlowThreshold", 20, z.number()), [], null) ?? 20;
-  const soundVolume =
-    useLiveQuery(() => getSetting("soundVolume", 80, z.number()), [], null) ?? 80;
+  const soundVolume = useLiveQuery(() => getSetting("soundVolume", 80, z.number()), [], null) ?? 80;
   const eyeBreakEnabled =
-      useLiveQuery(() => getSetting("eyeBreakEnabled", false, z.boolean()), [], null) ?? false;
-    const notificationsEnabled =
+    useLiveQuery(() => getSetting("eyeBreakEnabled", false, z.boolean()), [], null) ?? false;
+  const notificationsEnabled =
     useLiveQuery(() => getSetting("notificationsEnabled", true, z.boolean()), [], null) ?? true;
   const tickSoundEnabled =
     useLiveQuery(() => getSetting("tickSoundEnabled", false, z.boolean()), [], null) ?? false;
@@ -134,7 +137,7 @@ function SettingsSuite() {
     URL.revokeObjectURL(url);
     toast.success("CSV Downloaded", { description: "Session history exported as CSV." });
   };
-  
+
   const downloadMd = async () => {
     const md = await exportMarkdown();
     const url = URL.createObjectURL(new Blob([md], { type: "text/markdown" }));
@@ -157,15 +160,20 @@ function SettingsSuite() {
   };
 
   // Group themes by category
-  const categories = Array.from(new Set(EIGENTIME_THEMES.map((t) => t.category))) as ThemeConfig['category'][];
+  const categories = Array.from(
+    new Set(EIGENTIME_THEMES.map((t) => t.category)),
+  ) as ThemeConfig["category"][];
 
   return (
     <div className="space-y-6">
       <div className="grid gap-6 md:grid-cols-2">
-
         {/* ── Appearance / Themes ─── */}
         <section className="glass space-y-6 rounded-2xl p-6 sm:p-8 transition-all duration-300 ease-out hover:shadow-md hover:scale-[1.01] md:col-span-2">
-          <div className="border-b border-border/50 pb-2"><h2 className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">{t("visualTheme")}</h2></div>
+          <div className="border-b border-border/50 pb-2">
+            <h2 className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">
+              {t("visualTheme")}
+            </h2>
+          </div>
 
           <div className="space-y-5">
             {categories.map((cat) => (
@@ -185,12 +193,53 @@ function SettingsSuite() {
                 </div>
               </div>
             ))}
+
+            {/* Custom Hex Theme Engine */}
+            <div className="space-y-2 mt-6 border-t border-border/50 pt-4">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                🖌️ Custom Engine
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 items-center p-4 rounded-xl border border-border/40 bg-secondary/30">
+                <div className="flex-1 space-y-1">
+                  <p className="text-sm font-medium">Generate from Hex</p>
+                  <p className="text-xs text-muted-foreground">
+                    Pick a base color to dynamically generate a glassmorphic theme.
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    onChange={(e) => {
+                      applyTheme("custom", e.target.value, false);
+                      setActiveThemeId("custom");
+                      void setSetting("themeId", "custom");
+                    }}
+                    className="h-10 w-14 cursor-pointer rounded overflow-hidden border-0 bg-transparent p-0"
+                    title="Choose a color for a custom Light theme"
+                  />
+                  <input
+                    type="color"
+                    onChange={(e) => {
+                      applyTheme("custom", e.target.value, true);
+                      setActiveThemeId("custom");
+                      void setSetting("themeId", "custom");
+                    }}
+                    className="h-10 w-14 cursor-pointer rounded overflow-hidden border-0 bg-transparent p-0 opacity-80"
+                    title="Choose a color for a custom Dark theme"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
         {/* Language & Layout */}
         <section className="glass space-y-6 rounded-2xl p-6 sm:p-8 transition-all duration-300 ease-out hover:shadow-md hover:scale-[1.01]">
-          <div className="border-b border-border/50 pb-2"><h2 className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">{t("langDirection")}</h2></div>
+          <div className="border-b border-border/50 pb-2">
+            <h2 className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">
+              {t("langDirection")}
+            </h2>
+          </div>
           <div className="flex gap-3">
             {(["en", "ar"] as const).map((l) => (
               <button
@@ -211,7 +260,11 @@ function SettingsSuite() {
 
         {/* Daily Goal Target */}
         <section className="glass space-y-6 rounded-2xl p-6 sm:p-8 transition-all duration-300 ease-out hover:shadow-md hover:scale-[1.01]">
-          <div className="border-b border-border/50 pb-2"><h2 className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">{t("dailyFocusTarget")}</h2></div>
+          <div className="border-b border-border/50 pb-2">
+            <h2 className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">
+              {t("dailyFocusTarget")}
+            </h2>
+          </div>
           <div className="flex items-center gap-4">
             <input
               type="range"
@@ -230,10 +283,79 @@ function SettingsSuite() {
 
         {/* Timer Defaults */}
         <section className="glass space-y-6 rounded-2xl p-6 sm:p-8 transition-all duration-300 ease-out hover:shadow-md hover:scale-[1.01] md:col-span-2">
-          <div className="border-b border-border/50 pb-2"><h2 className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">{t("timerDefaults")}</h2></div>
+          <div className="border-b border-border/50 pb-2">
+            <h2 className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">
+              {t("timerDefaults")}
+            </h2>
+          </div>
           <div className="grid gap-4 sm:grid-cols-3">
             <label className="space-y-1.5">
-              <span className="text-xs font-medium text-muted-foreground">{t("focusDuration")}</span>
+              <span className="text-xs font-medium text-muted-foreground">
+                {t("focusDuration")}
+              </span>
+              <select
+                value={focusDuration}
+                onChange={(e) => void setSetting("defaultFocusDuration", Number(e.target.value))}
+                className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none shadow-inner transition-all hover:border-muted-foreground/30 focus:border-ring focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
+              >
+                <option value={15}>15 {t("mins")}</option>
+                <option value={25}>25 {t("minsPomodoro")}</option>
+                <option value={45}>45 {t("minsUltradian")}</option>
+                <option value={60}>60 {t("mins")}</option>
+                <option value={90}>90 {t("minsDeepWork")}</option>
+              </select>
+            </label>
+
+            <label className="space-y-1.5">
+              <span className="text-xs font-medium text-muted-foreground">{t("shortBreak")}</span>
+              <select
+                value={shortBreak}
+                onChange={(e) => void setSetting("defaultShortBreak", Number(e.target.value))}
+                className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none shadow-inner transition-all hover:border-muted-foreground/30 focus:border-ring focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
+              >
+                <option value={3}>3 {t("mins")}</option>
+                <option value={5}>5 {t("mins")}</option>
+                <option value={10}>10 {t("mins")}</option>
+              </select>
+            </label>
+
+            <label className="space-y-1.5">
+              <span className="text-xs font-medium text-muted-foreground">{t("longBreak")}</span>
+              <select
+                value={longBreak}
+                onChange={(e) => void setSetting("defaultLongBreak", Number(e.target.value))}
+                className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none shadow-inner transition-all hover:border-muted-foreground/30 focus:border-ring focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
+              >
+                <option value={15}>15 {t("mins")}</option>
+                <option value={20}>20 {t("mins")}</option>
+                <option value={30}>30 {t("mins")}</option>
+              </select>
+            </label>
+          </div>
+
+          <div className="flex items-center justify-between pt-2">
+            <span className="text-sm font-medium">{t("autoStartBreaks")}</span>
+            <input
+              type="checkbox"
+              checked={autoStartBreaks}
+              onChange={(e) => void setSetting("autoStartBreaks", e.target.checked)}
+              className="size-4 accent-purple-500"
+            />
+          </div>
+        </section>
+
+        {/* Timer Defaults */}
+        <section className="glass space-y-6 rounded-2xl p-6 sm:p-8 transition-all duration-300 ease-out hover:shadow-md hover:scale-[1.01] md:col-span-2">
+          <div className="border-b border-border/50 pb-2">
+            <h2 className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">
+              {t("timerDefaults")}
+            </h2>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <label className="space-y-1.5">
+              <span className="text-xs font-medium text-muted-foreground">
+                {t("focusDuration")}
+              </span>
               <select
                 value={focusDuration}
                 onChange={(e) => void setSetting("defaultFocusDuration", Number(e.target.value))}
@@ -287,7 +409,11 @@ function SettingsSuite() {
 
         {/* Behavioral AI & Intelligence Thresholds */}
         <section className="glass space-y-6 rounded-2xl p-6 sm:p-8 transition-all duration-300 ease-out hover:shadow-md hover:scale-[1.01] md:col-span-2">
-          <div className="border-b border-border/50 pb-2"><h2 className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">{t("behavioralSettings")}</h2></div>
+          <div className="border-b border-border/50 pb-2">
+            <h2 className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">
+              {t("behavioralSettings")}
+            </h2>
+          </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="space-y-1.5">
               <span className="text-xs font-medium text-muted-foreground">
@@ -323,16 +449,23 @@ function SettingsSuite() {
 
         {/* Audio & Sound Effects */}
         <section className="glass space-y-6 rounded-2xl p-6 sm:p-8 transition-all duration-300 ease-out hover:shadow-md hover:scale-[1.01] md:col-span-2">
-          <div className="border-b border-border/50 pb-2"><h2 className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">{t("sysNotif")}</h2></div>
-          
+          <div className="border-b border-border/50 pb-2">
+            <h2 className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">
+              {t("sysNotif")}
+            </h2>
+          </div>
+
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <span className="text-sm font-medium">{t("desktopNotif")}</span>
                 <p className="text-xs text-muted-foreground flex items-center gap-2">
-                  {t("desktopNotifSub")} 
-                  <button onClick={() => requestNotificationPermission()} className="text-orange-500 hover:underline flex items-center gap-1 text-[10px]">
-                    <BellRing className="size-3"/> Request System Permission
+                  {t("desktopNotifSub")}
+                  <button
+                    onClick={() => requestNotificationPermission()}
+                    className="text-orange-500 hover:underline flex items-center gap-1 text-[10px]"
+                  >
+                    <BellRing className="size-3" /> Request System Permission
                   </button>
                 </p>
               </div>
@@ -343,12 +476,13 @@ function SettingsSuite() {
                 className="size-4 accent-orange-500"
               />
             </div>
-            
-            
+
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <span className="text-sm font-medium">20-20-20 Eye Break</span>
-                <p className="text-xs text-muted-foreground">Every 20 minutes, look 20 feet away for 20 seconds.</p>
+                <p className="text-xs text-muted-foreground">
+                  Every 20 minutes, look 20 feet away for 20 seconds.
+                </p>
               </div>
               <input
                 type="checkbox"
@@ -359,7 +493,7 @@ function SettingsSuite() {
                     let granted = await isPermissionGranted();
                     if (!granted) {
                       const res = await requestPermission();
-                      granted = res === 'granted';
+                      granted = res === "granted";
                     }
                     if (!granted) {
                       toast.error("Notification permission denied. Cannot enable Eye Breaks.");
@@ -397,7 +531,7 @@ function SettingsSuite() {
                 className="size-4 accent-orange-500"
               />
             </div>
-            
+
             <div className="space-y-1.5 pt-2">
               <span className="text-xs font-medium text-muted-foreground">{t("alertVolume")}</span>
               <div className="flex items-center gap-4">
@@ -410,7 +544,9 @@ function SettingsSuite() {
                   onChange={(e) => void setSetting("soundVolume", Number(e.target.value))}
                   className="flex-1 accent-orange-500"
                 />
-                <span className="tabular w-12 text-end font-mono text-sm font-semibold">{soundVolume}%</span>
+                <span className="tabular w-12 text-end font-mono text-sm font-semibold">
+                  {soundVolume}%
+                </span>
               </div>
             </div>
           </div>
@@ -419,7 +555,9 @@ function SettingsSuite() {
         {/* System Integration — Global Shortcuts */}
         <section className="glass space-y-6 rounded-2xl p-6 sm:p-8 transition-all duration-300 ease-out hover:shadow-md hover:scale-[1.01] md:col-span-2">
           <div className="border-b border-border/50 pb-2">
-            <h2 className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">System Integration</h2>
+            <h2 className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">
+              System Integration
+            </h2>
           </div>
 
           <div className="space-y-5">
@@ -427,7 +565,9 @@ function SettingsSuite() {
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <span className="text-sm font-medium">Global Keyboard Shortcuts</span>
-                <p className="text-xs text-muted-foreground">Control EigenTime from anywhere — even when minimized.</p>
+                <p className="text-xs text-muted-foreground">
+                  Control EigenTime from anywhere — even when minimized.
+                </p>
               </div>
               <input
                 type="checkbox"
@@ -439,23 +579,37 @@ function SettingsSuite() {
             </div>
 
             {/* Shortcut reference table */}
-            <div className={cn("rounded-xl border border-border/50 overflow-hidden transition-opacity", !globalShortcutsEnabled && "opacity-40 pointer-events-none")}>
+            <div
+              className={cn(
+                "rounded-xl border border-border/50 overflow-hidden transition-opacity",
+                !globalShortcutsEnabled && "opacity-40 pointer-events-none",
+              )}
+            >
               <div className="bg-secondary/30 px-4 py-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                 Registered Hotkeys
               </div>
-              {([
-                { label: "Play / Pause", combo: ["Ctrl", "Shift", "P"] },
-                { label: "Stop & Reset", combo: ["Ctrl", "Shift", "S"] },
-                { label: "Skip Phase",   combo: ["Ctrl", "Shift", "N"] },
-                { label: "Zen Mode",     combo: ["Ctrl", "Shift", "Z"] },
-              ] as const).map(({ label, combo }) => (
-                <div key={label} className="flex items-center justify-between border-t border-border/30 px-4 py-2.5">
+              {(
+                [
+                  { label: "Play / Pause", combo: ["Ctrl", "Shift", "P"] },
+                  { label: "Stop & Reset", combo: ["Ctrl", "Shift", "S"] },
+                  { label: "Skip Phase", combo: ["Ctrl", "Shift", "N"] },
+                  { label: "Zen Mode", combo: ["Ctrl", "Shift", "Z"] },
+                ] as const
+              ).map(({ label, combo }) => (
+                <div
+                  key={label}
+                  className="flex items-center justify-between border-t border-border/30 px-4 py-2.5"
+                >
                   <span className="text-sm text-foreground">{label}</span>
                   <div className="flex items-center gap-1">
                     {combo.map((key, i) => (
                       <span key={i}>
-                        <kbd className="rounded border border-border bg-secondary px-1.5 py-0.5 font-mono text-[11px] font-semibold shadow-sm">{key}</kbd>
-                        {i < combo.length - 1 && <span className="mx-0.5 text-muted-foreground text-xs">+</span>}
+                        <kbd className="rounded border border-border bg-secondary px-1.5 py-0.5 font-mono text-[11px] font-semibold shadow-sm">
+                          {key}
+                        </kbd>
+                        {i < combo.length - 1 && (
+                          <span className="mx-0.5 text-muted-foreground text-xs">+</span>
+                        )}
                       </span>
                     ))}
                   </div>
@@ -465,17 +619,20 @@ function SettingsSuite() {
 
             {/* Tray info note */}
             <p className="text-xs text-muted-foreground">
-              <span className="font-medium text-foreground">System Tray</span> is always active — right-click the tray icon for quick timer controls and to show/hide the window.
+              <span className="font-medium text-foreground">System Tray</span> is always active —
+              right-click the tray icon for quick timer controls and to show/hide the window.
             </p>
           </div>
         </section>
 
         {/* Data & Offline Backup */}
         <section className="glass space-y-6 rounded-2xl p-6 sm:p-8 transition-all duration-300 ease-out hover:shadow-md hover:scale-[1.01] md:col-span-2">
-          <div className="border-b border-border/50 pb-2"><h2 className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">{t("dataMgmt")}</h2></div>
-          <p className="text-sm text-muted-foreground">
-            {t("offlineNote")}
-          </p>
+          <div className="border-b border-border/50 pb-2">
+            <h2 className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">
+              {t("dataMgmt")}
+            </h2>
+          </div>
+          <p className="text-sm text-muted-foreground">{t("offlineNote")}</p>
           <div className="flex flex-wrap gap-3 pt-1">
             <button
               type="button"
@@ -536,9 +693,7 @@ function SettingsSuite() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="glass max-w-md space-y-4 rounded-2xl p-6 shadow-2xl">
             <h3 className="text-lg font-bold text-destructive">{t("confirmResetTitle")}</h3>
-            <p className="text-sm text-muted-foreground">
-              {t("confirmResetBody")}
-            </p>
+            <p className="text-sm text-muted-foreground">{t("confirmResetBody")}</p>
             <div className="flex justify-end gap-3 pt-2">
               <button
                 type="button"
@@ -591,18 +746,9 @@ function ThemeCard({
     >
       {/* Color swatch strip */}
       <div className="flex gap-1">
-        <span
-          className="h-3 flex-1 rounded-full"
-          style={{ background: theme.colors.bgPrimary }}
-        />
-        <span
-          className="h-3 flex-1 rounded-full"
-          style={{ background: theme.colors.accent }}
-        />
-        <span
-          className="h-3 flex-1 rounded-full"
-          style={{ background: theme.colors.textMuted }}
-        />
+        <span className="h-3 flex-1 rounded-full" style={{ background: theme.colors.bgPrimary }} />
+        <span className="h-3 flex-1 rounded-full" style={{ background: theme.colors.accent }} />
+        <span className="h-3 flex-1 rounded-full" style={{ background: theme.colors.textMuted }} />
       </div>
       <span
         className="text-[11px] font-semibold leading-tight"

@@ -6,7 +6,13 @@ import { formatHoursShort } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { Cuboid, Play } from "lucide-react";
 
-const tierVar = ["var(--heat-0)", "var(--heat-1)", "var(--heat-2)", "var(--heat-3)", "var(--heat-4)"];
+const tierVar = [
+  "var(--heat-0)",
+  "var(--heat-1)",
+  "var(--heat-2)",
+  "var(--heat-3)",
+  "var(--heat-4)",
+];
 
 export function ActivityHeatmap({
   sessions,
@@ -50,10 +56,20 @@ export function ActivityHeatmap({
   return (
     <section className="glass rounded-2xl p-5">
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 sm:flex sm:justify-between">
-        <div className="min-w-0">
-          <h2 className="truncate text-base font-semibold">{t("heatmapTitle")}</h2>
+        <div className="flex flex-col min-w-0">
+          <div className="flex items-center gap-2">
+            <h2 className="truncate text-base font-semibold">{t("heatmapTitle")}</h2>
+            <div className="group relative cursor-help">
+              <div className="flex size-4 items-center justify-center rounded-full bg-secondary text-[10px] font-bold text-muted-foreground hover:bg-muted hover:text-foreground">
+                ?
+              </div>
+              <div className="pointer-events-none absolute left-1/2 top-full z-50 mt-2 -translate-x-1/2 w-64 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl bg-popover p-3 text-xs text-popover-foreground shadow-xl border rtl:text-right">
+                {t("heatmapDesc")}
+              </div>
+            </div>
+          </div>
           {isLoaded && (
-            <p className="truncate text-xs text-muted-foreground">
+            <p className="truncate text-xs text-muted-foreground mt-1">
               {formatHoursShort(totalSec)} · {activeDays} {t("activeDays")}
             </p>
           )}
@@ -64,7 +80,12 @@ export function ActivityHeatmap({
               <button
                 onClick={() => setIs3D(!is3D)}
                 title="Toggle 3D Heatmap"
-                className={cn("flex items-center justify-center p-1.5 rounded-lg transition-colors border mr-2", is3D ? "bg-focus text-focus-foreground border-transparent" : "hover:bg-secondary border-border text-muted-foreground")}
+                className={cn(
+                  "flex items-center justify-center p-1.5 rounded-lg transition-colors border mr-2",
+                  is3D
+                    ? "bg-focus text-focus-foreground border-transparent"
+                    : "hover:bg-secondary border-border text-muted-foreground",
+                )}
               >
                 <Cuboid className="size-4" />
               </button>
@@ -82,7 +103,8 @@ export function ActivityHeatmap({
         <div className="mt-4 flex flex-col items-center justify-center py-12 rounded-xl bg-secondary/30 border border-dashed border-border">
           <Cuboid className="size-8 text-muted-foreground mb-4 opacity-50" />
           <p className="text-sm text-muted-foreground mb-4 text-center max-w-sm">
-            The heatmap is paused by default to conserve memory. Click below to load your activity history.
+            The heatmap is paused by default to conserve memory. Click below to load your activity
+            history.
           </p>
           <button
             onClick={() => setIsLoaded(true)}
@@ -94,24 +116,44 @@ export function ActivityHeatmap({
         </div>
       ) : (
         <>
-          <div className={cn("mt-4 overflow-x-auto pb-1 flex", is3D && "justify-center py-12 overflow-visible")} dir="ltr">
+          <div
+            className={cn(
+              "mt-4 overflow-x-auto pb-1 flex",
+              is3D && "justify-center py-12 overflow-visible",
+            )}
+          >
             <div className="min-w-max" style={{ perspective: "1000px" }}>
-              <div className={cn("relative mb-1 h-4 text-[10px] text-muted-foreground transition-opacity duration-300", is3D && "opacity-0 pointer-events-none")}>
+              <div
+                className={cn(
+                  "relative mb-1 h-4 text-[10px] text-muted-foreground transition-opacity duration-300",
+                  is3D && "opacity-0 pointer-events-none",
+                )}
+              >
                 {monthLabels.map((m) => (
-                  <span key={`${m.index}-${m.label}`} className="absolute" style={{ left: m.index * 14 }}>
+                  <span
+                    key={`${m.index}-${m.label}`}
+                    className="absolute"
+                    style={{ left: m.index * 14 }}
+                  >
                     {m.label}
                   </span>
                 ))}
               </div>
-              <div 
+              <div
                 className="flex gap-[3px] transition-all duration-1000 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
                 style={{
                   transformStyle: "preserve-3d",
-                  transform: is3D ? "rotateX(60deg) rotateZ(-45deg) scale(1.4)" : "rotateX(0deg) rotateZ(0deg) scale(1)"
+                  transform: is3D
+                    ? "rotateX(60deg) rotateZ(-45deg) scale(1.4)"
+                    : "rotateX(0deg) rotateZ(0deg) scale(1)",
                 }}
               >
                 {weeks.map((week, wi) => (
-                  <div key={wi} className="flex flex-col gap-[3px]" style={{ transformStyle: "preserve-3d" }}>
+                  <div
+                    key={wi}
+                    className="flex flex-col gap-[3px]"
+                    style={{ transformStyle: "preserve-3d" }}
+                  >
                     {week.map((cell) => (
                       <button
                         key={cell.day}
@@ -123,15 +165,17 @@ export function ActivityHeatmap({
                         aria-label={`${cell.day}: ${formatHoursShort(cell.totalSec)}`}
                         className={cn(
                           "size-[11px] outline-none transition-all duration-500",
-                          !is3D && "rounded-[3px] hover:scale-125 focus-visible:ring-2 focus-visible:ring-ring",
-                          is3D && "rounded-sm"
+                          !is3D &&
+                            "rounded-[3px] hover:scale-125 focus-visible:ring-2 focus-visible:ring-ring",
+                          is3D && "rounded-sm",
                         )}
-                        style={{ 
+                        style={{
                           background: tierVar[cell.tier],
                           transform: is3D ? `translateZ(${cell.tier * 6}px)` : "translateZ(0px)",
-                          boxShadow: is3D && cell.tier > 0 
-                            ? `-1px 1px 0px rgba(0,0,0,0.3), -2px 2px 0px rgba(0,0,0,0.1), 0 10px 20px rgba(0,0,0,0.1)` 
-                            : "none"
+                          boxShadow:
+                            is3D && cell.tier > 0
+                              ? `-1px 1px 0px rgba(0,0,0,0.3), -2px 2px 0px rgba(0,0,0,0.1), 0 10px 20px rgba(0,0,0,0.1)`
+                              : "none",
                         }}
                       />
                     ))}

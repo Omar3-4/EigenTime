@@ -9,10 +9,7 @@
  */
 import { useEffect, useRef } from "react";
 import { isTauri } from "@tauri-apps/api/core";
-import {
-  register,
-  unregisterAll,
-} from "@tauri-apps/plugin-global-shortcut";
+import { register, unregisterAll } from "@tauri-apps/plugin-global-shortcut";
 import type { TimerSnapshot } from "@/lib/db";
 import type { TimerAction } from "@/lib/timer-engine";
 import { isRunning } from "@/lib/timer-engine";
@@ -33,10 +30,7 @@ const SHORTCUTS = [
   { combo: "Ctrl+Shift+Z", key: "zen" },
 ] as const;
 
-export function useGlobalShortcuts(
-  enabled: boolean,
-  callbacks: ShortcutCallbacks,
-) {
+export function useGlobalShortcuts(enabled: boolean, callbacks: ShortcutCallbacks) {
   // Keep callbacks ref-stable so shortcuts don't need to be re-registered
   // every render — only when `enabled` actually changes.
   const cbRef = useRef(callbacks);
@@ -70,7 +64,10 @@ export function useGlobalShortcuts(
               }
             });
           } catch (err) {
-            console.warn(`[EigenTime] Could not register shortcut ${combo} — it may be taken by another app.`, err);
+            console.warn(
+              `[EigenTime] Could not register shortcut ${combo} — it may be taken by another app.`,
+              err,
+            );
           }
         }
         registered = true;

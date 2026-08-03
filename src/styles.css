@@ -131,13 +131,26 @@
 
 /* RTL / Arabic Typography Adjustments */
 [dir="rtl"] {
-  font-family: "Noto Kufi Arabic", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-family:
+    "Noto Kufi Arabic",
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    sans-serif;
   line-height: 1.75;
 }
-[dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3, [dir="rtl"] h4, [dir="rtl"] h5, [dir="rtl"] h6 {
+[dir="rtl"] h1,
+[dir="rtl"] h2,
+[dir="rtl"] h3,
+[dir="rtl"] h4,
+[dir="rtl"] h5,
+[dir="rtl"] h6 {
   font-weight: 600;
 }
-[dir="rtl"] p, [dir="rtl"] span, [dir="rtl"] div, [dir="rtl"] button {
+[dir="rtl"] p,
+[dir="rtl"] span,
+[dir="rtl"] div,
+[dir="rtl"] button {
   font-weight: 500;
 }
 
@@ -222,7 +235,9 @@
 }
 
 @keyframes orb-spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 .orb-spin {
   animation: orb-spin linear infinite;

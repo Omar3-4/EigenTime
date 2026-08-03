@@ -14,6 +14,7 @@ import {
   listTasks,
   todayStat,
   toggleTask,
+  sessionsInRange,
 } from "@/lib/repo";
 import { formatHoursShort, minutesFromHM, nowMinutes } from "@/lib/time";
 import { getSubjectColor, getSubjectSoftColor } from "@/lib/subject-colors";
@@ -48,7 +49,7 @@ function TimerPage() {
           <ArcTimer />
           <div className="grid gap-6 xl:grid-cols-2">
             <TimerChecklist />
-            <TimerScheduleTimeline />
+            <SessionHistory />
           </div>
         </div>
       </DataGate>
@@ -61,8 +62,11 @@ function QuickMetricsOverview() {
   const stat = useLiveQuery(() => todayStat(), [], null);
   const subjects = useLiveQuery(() => listSubjects(), [], []);
   const goalHours =
-    useLiveQuery(() => getSetting("dailyGoalHours", DEFAULT_DAILY_GOAL_HOURS, z.number()), [], null) ??
-    DEFAULT_DAILY_GOAL_HOURS;
+    useLiveQuery(
+      () => getSetting("dailyGoalHours", DEFAULT_DAILY_GOAL_HOURS, z.number()),
+      [],
+      null,
+    ) ?? DEFAULT_DAILY_GOAL_HOURS;
 
   const top = subjects?.find((s) => s.id === stat?.topSubjectId);
   const pct = Math.min(100, Math.round(((stat?.totalSec ?? 0) / (goalHours * 3600)) * 100));
@@ -136,7 +140,9 @@ function TimerChecklist() {
             <li key={task.id}>
               <button
                 type="button"
-                onClick={() => { toggleTask(task.id, !task.done).catch(console.error); }}
+                onClick={() => {
+                  toggleTask(task.id, !task.done).catch(console.error);
+                }}
                 className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-start transition-colors hover:bg-secondary"
               >
                 {task.done ? (
@@ -175,53 +181,77 @@ function TimerChecklist() {
   );
 }
 
-function TimerScheduleTimeline() {
-  const { t } = useI18n();
-  const blocks = useLiveQuery(() => listBlocksForDay(), [], []);
+function SessionHistory() {
+  const { t, lang } = useI18n();
+  const sessions = useLiveQuery(
+    async () => {
+      const from = new Date();
+      from.setHours(0, 0, 0, 0);
+      const all = await sessionsInRange(1);
+      return all.filter((s) => s.startedAt >= from.getTime());
+    },
+    [],
+    [],
+  );
   const subjects = useLiveQuery(() => listSubjects(), [], []);
-  const current = nowMinutes();
 
   return (
     <section className="glass rounded-2xl p-5">
-      <h2 className="mb-4 text-base font-semibold">{t("schedule")}</h2>
-      <ol className="relative space-y-1 ps-6">
-        <span className="absolute inset-y-2 start-[7px] w-px bg-border" aria-hidden />
-        {(blocks ?? []).map((b) => {
-          const subject = subjects?.find((s) => s.id === b.subjectId);
-          const start = minutesFromHM(b.startTime);
-          const end = minutesFromHM(b.endTime);
-          const state = current >= end ? "past" : current >= start ? "active" : "upcoming";
-          const color = subject ? getSubjectColor(subject.color) : "var(--focus)";
+      <h2 className="mb-4 text-base font-semibold">{t("timer")}</h2>
+      <ul className="space-y-3">
+        {(sessions ?? []).reverse().map((s) => {
+          const subject = subjects?.find((sub) => sub.id === s.subjectId);
+          const locale = lang === "ar" ? "ar-EG" : "en-US";
+          const startTime = new Date(s.startedAt).toLocaleTimeString(locale, {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+          const endTime = new Date(s.endedAt).toLocaleTimeString(locale, {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+          const durationMins = Math.round(s.durationSec / 60);
+          const durationHours = (s.durationSec / 3600).toFixed(2);
+
           return (
-            <li key={b.id} className="relative py-2">
-              <span
-                className="absolute -start-6 top-3.5 size-3.5 rounded-full border-2 border-card"
-                style={{
-                  background: state === "upcoming" ? "var(--border)" : color,
-                  opacity: state === "past" ? 0.45 : 1,
-                }}
-                aria-hidden
-              />
-              <div
-                className={cn(
-                  "rounded-xl px-3 py-2 transition-colors",
-                  state === "active" && "bg-cyan-500/10 border border-cyan-500/30",
-                  state === "past" && "opacity-60",
-                )}
-              >
-                <p className="text-sm font-medium">{b.title}</p>
-                <p className="tabular text-xs text-muted-foreground">
-                  {b.startTime} – {b.endTime}
-                  {subject ? ` · ${subject.name}` : ""}
-                </p>
+            <li key={s.id} className="flex flex-col gap-1 rounded-xl bg-secondary/50 p-3">
+              <div className="flex justify-between items-center">
+                <span className="font-semibold text-sm">
+                  {subject ? subject.name : "Uncategorized"}
+                  {s.topic ? (
+                    <span className="text-muted-foreground ml-2 font-normal truncate max-w-[150px] inline-block align-bottom">
+                      - {s.topic}
+                    </span>
+                  ) : null}
+                </span>
+                <span className="text-xs text-muted-foreground font-mono">
+                  {startTime} - {endTime}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-xs mt-1">
+                <span className="text-muted-foreground flex gap-2">
+                  <span
+                    className={cn(
+                      "px-2 py-0.5 rounded-full",
+                      s.mode === "focus"
+                        ? "bg-focus-soft text-focus-foreground"
+                        : "bg-emerald-500/10 text-emerald-500",
+                    )}
+                  >
+                    {s.mode === "focus" ? "Focus" : "Break"}
+                  </span>
+                </span>
+                <span className="font-bold text-[var(--focus)]">
+                  {durationMins}m <span className="opacity-70 font-normal">({durationHours}h)</span>
+                </span>
               </div>
             </li>
           );
         })}
-        {(blocks ?? []).length === 0 && (
-          <li className="py-6 text-sm text-muted-foreground">{t("noneYet")}</li>
+        {(sessions ?? []).length === 0 && (
+          <li className="px-3 py-6 text-sm text-muted-foreground">{t("noneYet")}</li>
         )}
-      </ol>
+      </ul>
     </section>
   );
 }

@@ -22,6 +22,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import type { Subject, TimerSnapshot } from "@/lib/db";
 import { useI18n } from "@/lib/i18n";
 import { toast } from "sonner";
+import { invoke, isTauri } from "@tauri-apps/api/core";
 import { buildFatigue } from "@/lib/analytics";
 import {
   DEFAULT_DAILY_GOAL_HOURS,
@@ -33,6 +34,7 @@ import {
   scheduleTimerPersist,
   todayStat,
   sessionsInRange,
+  createSubject,
 } from "@/lib/repo";
 import {
   DEFAULT_POMO_BREAK_MIN,
@@ -81,6 +83,17 @@ export function ArcTimer() {
   const [scratchpadOpen, setScratchpadOpen] = useState(false);
   const [scratchInput, setScratchInput] = useState("");
   const [pauseContext, setPauseContext] = useState("");
+  const [subjectError, setSubjectError] = useState(false);
+  const [subjectInput, setSubjectInput] = useState("");
+
+  useEffect(() => {
+    if (snap.subjectId && subjects) {
+      const s = subjects.find((sub) => sub.id === snap.subjectId);
+      if (s && subjectInput !== s.name) {
+        setSubjectInput(s.name);
+      }
+    }
+  }, [snap.subjectId, subjects]);
 
   useEffect(() => {
     const onFullscreenChange = () => {
@@ -149,24 +162,67 @@ export function ArcTimer() {
   const running    = isRunning(snap);
   const isPomodoro = snap.mode === "pomodoro";
 
+  const snapRef = useRef(snap);
+  snapRef.current = snap;
+
   const commit = useCallback((next: TimerSnapshot) => {
-    setSnap(currentSnap => {
-      past.current = [...past.current.slice(-30), currentSnap];
-      future.current = [];
-      return next;
-    });
+    past.current = [...past.current.slice(-30), snapRef.current];
+    future.current = [];
+    setSnap(next);
   }, []);
 
+  const twentyWarnedRef = useRef(0);
+  const breakWarnedRef = useRef(false);
+
   useEffect(() => {
-    if (!isRunning(snap) || snap.mode !== "pomodoro") return;
-    if (remainingSeconds(snap) <= 0) {
-      const wasFocus = snap.pomoPhase === "focus";
-      const msg = wasFocus ? "Focus phase complete! Break time 🎉" : "Break over — back to focus!";
-      toast.info(msg, { duration: 4000 });
-      notifyPhaseComplete(wasFocus ? "focus" : "break").catch(console.error);
-      playChime().catch(console.error);
-      commit(reduceTimer(snap, "finish_phase"));
+    if (!isRunning(snap)) return;
+
+    if (snap.mode === "pomodoro") {
+      if (remainingSeconds(snap) <= 0) {
+        const wasFocus = snap.pomoPhase === "focus";
+        const msg = wasFocus ? "Focus phase complete! Break time 🎉" : "Break over — back to focus!";
+        toast.info(msg, { duration: 4000 });
+        notifyPhaseComplete(wasFocus ? "focus" : "break").catch(console.error);
+        playChime().catch(console.error);
+        commit(reduceTimer(snap, "finish_phase"));
+      } else if (snap.pomoPhase === "break" && !breakWarnedRef.current) {
+        breakWarnedRef.current = true;
+        toast("Hydrate & Stretch 💧", {
+          description: "Use this break to drink water and check your posture.",
+          duration: 10000,
+        });
+      }
+      
+      // Reset break warning when focus phase starts
+      if (snap.pomoPhase === "focus") {
+        breakWarnedRef.current = false;
+      }
     }
+
+    // 20-20-20 Rule for Focus modes (both stopwatch and pomo-focus)
+    const isFocusing = snap.mode === "stopwatch" || snap.pomoPhase === "focus";
+    if (isFocusing) {
+      const elapsedFocus = elapsedSeconds(snap);
+      const minutes = Math.floor(elapsedFocus / 60);
+      
+      // Trigger every 20 minutes (20, 40, 60...)
+      if (minutes > 0 && minutes % 20 === 0 && twentyWarnedRef.current !== minutes) {
+        twentyWarnedRef.current = minutes;
+        // Check if Tauri environment to spawn eye rest window
+        if (isTauri()) {
+          invoke("spawn_eye_rest").catch(console.error);
+        } else {
+          toast("20-20-20 Rule", {
+            description: "Look at something 20 feet away for 20 seconds.",
+            duration: 20000,
+          });
+        }
+      }
+    } else {
+      // Reset when not focusing
+      twentyWarnedRef.current = 0;
+    }
+
   }, [snap]);
 
   const fatigue = useMemo(
@@ -188,13 +244,16 @@ export function ArcTimer() {
   }, [fatigue, warnedFatigue]);
 
   // ── Daily goal notification ───────────────────────────────────────────────
-  const goalAchievedRef = useRef(false);
+  const goalAchievedDayRef = useRef<string | null>(null);
   useEffect(() => {
-    if (goalAchievedRef.current || !running) return;
-    const todayTotal = (stat?.totalSec ?? 0) + elapsed;
+    if (!stat) return;
+    const currentDay = stat.day;
+    if (goalAchievedDayRef.current === currentDay) return;
+
+    const todayTotal = stat.totalSec + (running ? elapsed : 0);
     const goalSec = goalHours * 3600;
     if (goalSec > 0 && todayTotal >= goalSec) {
-      goalAchievedRef.current = true;
+      goalAchievedDayRef.current = currentDay;
       notifyDailyGoalAchieved(goalHours).catch(console.error);
     }
   }, [elapsed, running, stat, goalHours]);
@@ -227,22 +286,19 @@ export function ArcTimer() {
   });
 
   const undo = () => {
-    setSnap(currentSnap => {
-      const prev = past.current.pop();
-      if (!prev) return currentSnap;
-      future.current = [currentSnap, ...future.current];
-      return prev;
-    });
+    const prev = past.current[past.current.length - 1];
+    if (!prev) return;
+    past.current = past.current.slice(0, -1);
+    future.current = [snapRef.current, ...future.current];
+    setSnap(prev);
   };
 
   const redo = () => {
-    setSnap(currentSnap => {
-      const [next, ...rest] = future.current;
-      if (!next) return currentSnap;
-      future.current = rest;
-      past.current = [...past.current, currentSnap];
-      return next;
-    });
+    const [next, ...rest] = future.current;
+    if (!next) return;
+    future.current = rest;
+    past.current = [...past.current, snapRef.current];
+    setSnap(next);
   };
 
   const applyPomoSettings = () => {
@@ -277,18 +333,28 @@ export function ArcTimer() {
     const total = Math.round(totalFocusSec(snap));
     if (total < 1) return;
     const startedAt = snap.overallStartedAt ?? (Date.now() - total * 1000);
-    await saveSession({
+    const sessionInput = {
       subjectId: snap.subjectId,
       startedAt,
       endedAt: Date.now(),
       durationSec: total,
-      mode: "focus",
+      mode: snap.pomoPhase === "break" ? ("rest" as const) : ("focus" as const),
       difficulty: snap.difficulty,
       ...(snap.mode === "pomodoro" && snap.pomoFocusSec !== undefined ? { targetSec: snap.pomoFocusSec } : snap.targetSec !== undefined ? { targetSec: snap.targetSec } : {}),
       ...(snap.pauseCount !== undefined ? { pauseCount: snap.pauseCount } : {}),
       ...(snap.pauseDurationSec !== undefined ? { pauseDurationSec: snap.pauseDurationSec } : {}),
       ...(snap.scratchpadNotes ? { scratchpadNotes: snap.scratchpadNotes } : {}),
       note: pauseContext,
+    };
+    await saveSession(sessionInput);
+
+    // Trigger gamification engine
+    import("@/lib/gamification").then((m) => {
+      m.processSessionCompletion({
+        id: "", // Mocked because processSessionCompletion only cares about stats
+        day: "",
+        ...sessionInput,
+      }).catch(console.error);
     });
     past.current = [];
     future.current = [];
@@ -514,8 +580,37 @@ export function ArcTimer() {
                <Pause className="size-4" /> {t("pause")}
              </button>
           ) : (
-             <button
-               onClick={() => { setIsTakingBreak(false); act(elapsed > 0 ? "resume" : "start"); }}
+              <button
+               onClick={async () => { 
+                 setIsTakingBreak(false);
+
+                 if (elapsed === 0) {
+                   const typedName = subjectInput.trim();
+                   if (!typedName) {
+                     setSubjectError(true);
+                     return;
+                   }
+                   
+                   let finalId = snap.subjectId;
+                   const existing = subjects?.find(s => s.name.toLowerCase() === typedName.toLowerCase());
+                   
+                   if (existing) {
+                     finalId = existing.id;
+                   } else {
+                     const colors = ["focus", "elapsed", "break", "purple", "orange", "pink", "cyan"];
+                     const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                     finalId = await createSubject({ name: typedName, color: randomColor as any, weeklyTargetHours: 0 });
+                   }
+                   
+                   setSubjectError(false);
+                   const nextSnap = { ...snap, subjectId: finalId };
+                   commit(reduceTimer(nextSnap, "start"));
+                   return;
+                 }
+                 
+                 setSubjectError(false);
+                 act("resume"); 
+               }}
                className="flex items-center gap-2 rounded-2xl px-6 py-3 text-sm font-semibold text-primary-foreground shadow-md transition-all duration-300 ease-out hover:scale-[1.03] active:scale-95"
                style={{ background: "var(--gradient-focus)" }}
              >
@@ -610,31 +705,53 @@ export function ArcTimer() {
 
       {!isZen && (
       <div className="glass flex flex-col gap-5 rounded-3xl p-5">
-        <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            {t("selectSubject")}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {(subjects ?? [])
-              .filter((s) => !s.archived)
-              .map((s) => (
-                <button
-                  key={s.id}
-                  type="button"
-                  onClick={() => commit({ ...snap, subjectId: s.id })}
-                  className={cn(
-                    "rounded-xl border px-3 py-1.5 text-xs font-semibold transition-colors",
-                    snap.subjectId === s.id ? "border-transparent" : "border-border bg-card",
-                  )}
-                  style={
-                    snap.subjectId === s.id
-                      ? { background: subjectColorVar[s.color] ?? "var(--focus)", color: "oklch(1 0 0)" }
-                      : undefined
-                  }
-                >
-                  {s.name}
-                </button>
-              ))}
+        <div className={cn("space-y-4 rounded-2xl p-4 transition-all duration-300", subjectError && !snap.subjectId ? "border-2 border-red-500 bg-red-500/10" : "border-2 border-transparent bg-transparent p-0")}>
+          <div className="space-y-2">
+            <p className={cn("text-xs font-semibold uppercase tracking-wider", subjectError && !subjectInput.trim() ? "text-red-500" : "text-muted-foreground")}>
+              {t("selectSubject")} <span className="opacity-70">(Required)</span>
+            </p>
+            <input
+              list="subject-options"
+              type="text"
+              placeholder="Type or select a subject..."
+              value={subjectInput}
+              onChange={(e) => {
+                setSubjectError(false);
+                setSubjectInput(e.target.value);
+                const existing = subjects?.find(s => s.name.toLowerCase() === e.target.value.trim().toLowerCase());
+                if (existing) {
+                  commit({ ...snap, subjectId: existing.id });
+                } else if (snap.subjectId) {
+                  commit({ ...snap, subjectId: "" });
+                }
+              }}
+              className={cn(
+                "w-full rounded-xl border px-3 py-2 text-sm outline-none transition-all focus:ring-2 focus:ring-offset-2 focus:ring-offset-background",
+                subjectError && !subjectInput.trim()
+                  ? "border-red-500 focus:border-red-500 focus:ring-red-500/50 bg-red-500/5"
+                  : "border-border bg-card hover:border-muted-foreground/30 focus:border-ring focus:ring-ring"
+              )}
+            />
+            <datalist id="subject-options">
+              {(subjects ?? [])
+                .filter((s) => !s.archived)
+                .map((s) => (
+                  <option key={s.id} value={s.name} />
+                ))}
+            </datalist>
+          </div>
+          
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              {t("topic") || "Topic"} <span className="opacity-70">(Optional)</span>
+            </p>
+            <input
+              type="text"
+              placeholder="What are you focusing on?"
+              value={snap.topic ?? ""}
+              onChange={(e) => commit({ ...snap, topic: e.target.value })}
+              className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none transition-all hover:border-muted-foreground/30 focus:border-ring focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
+            />
           </div>
         </div>
 

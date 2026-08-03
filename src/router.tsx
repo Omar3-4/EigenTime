@@ -3,7 +3,7 @@ import { createMemoryHistory, createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
 
 const memoryHistory = createMemoryHistory({
-  initialEntries: ['/'], // Set the initial route to /
+  initialEntries: ["/"], // Set the initial route to /
 });
 
 export const getRouter = () => {
