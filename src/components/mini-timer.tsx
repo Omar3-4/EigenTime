@@ -37,7 +37,7 @@ export function MiniTimerWidget() {
       <Link
         to="/timer"
         className={cn(
-          "flex items-center gap-3 px-4 py-2 rounded-full border shadow-lg backdrop-blur-xl transition-all hover:scale-105 active:scale-95",
+          "flex items-center gap-3 px-4 py-2 rounded-full border shadow-lg transition-all hover:scale-105 active:scale-95",
           running ? "bg-card/80 border-border" : "bg-secondary/90 border-transparent opacity-80",
         )}
       >

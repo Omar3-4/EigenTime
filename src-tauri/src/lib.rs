@@ -4,8 +4,12 @@ mod tray;
 #[tauri::command]
 fn spawn_widget(app: tauri::AppHandle) {
   if let Some(win) = app.get_webview_window("widget") {
-    let _ = win.show();
-    let _ = win.set_focus();
+    if win.is_visible().unwrap_or(false) {
+      let _ = win.hide();
+    } else {
+      let _ = win.show();
+      let _ = win.set_focus();
+    }
     return;
   }
   let _ = tauri::WebviewWindowBuilder::new(
@@ -17,6 +21,7 @@ fn spawn_widget(app: tauri::AppHandle) {
   .inner_size(300.0, 120.0)
   .decorations(false)
   .transparent(true)
+  .shadow(false)
   .always_on_top(true)
   .resizable(false)
   .skip_taskbar(true)
@@ -26,7 +31,7 @@ fn spawn_widget(app: tauri::AppHandle) {
 #[tauri::command]
 fn close_widget(app: tauri::AppHandle) {
   if let Some(win) = app.get_webview_window("widget") {
-    let _ = win.close();
+    let _ = win.hide();
   }
 }
 
@@ -46,10 +51,10 @@ fn spawn_eye_rest(app: tauri::AppHandle) {
   .fullscreen(true)
   .always_on_top(true)
   .skip_taskbar(true)
+  .shadow(false)
   .build();
 }
 
-#[tauri::command]
 fn close_eye_rest(app: tauri::AppHandle) {
   if let Some(win) = app.get_webview_window("eye_rest") {
     let _ = win.close();
@@ -75,7 +80,8 @@ pub fn run() {
         if window.label() == "main" {
           api.prevent_close();
           let _ = window.hide();
-          spawn_widget(window.app_handle().clone());
+          // We no longer automatically spawn the widget on close!
+          // spawn_widget(window.app_handle().clone());
         }
       }
       _ => {}

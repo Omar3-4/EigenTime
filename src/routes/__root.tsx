@@ -8,7 +8,7 @@ import { TimerTickProvider } from "@/components/timer-tick-provider";
 import { SessionsProvider } from "@/components/sessions-provider";
 
 function NotFoundComponent() {
-  return (
+  const pathname = useRouter().state.location.pathname; const isMinimal = pathname === "/widget" || pathname === "/eye-rest"; return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
@@ -33,7 +33,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
 
-  return (
+  const pathname = useRouter().state.location.pathname; const isMinimal = pathname === "/widget" || pathname === "/eye-rest"; return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
@@ -77,8 +77,8 @@ function RootComponent() {
     applyTheme(getSavedThemeId());
   }, []);
 
-  return (
-    <QueryClientProvider client={queryClient}>
+  const pathname = useRouter().state.location.pathname; const isMinimal = pathname === "/widget" || pathname === "/eye-rest"; return (
+    <QueryClientProvider client={queryClient}>{isMinimal ? (<I18nProvider><Outlet /></I18nProvider>) : (
       <TimerTickProvider>
         <SessionsProvider>
           <I18nProvider>
@@ -86,6 +86,6 @@ function RootComponent() {
           </I18nProvider>
         </SessionsProvider>
       </TimerTickProvider>
-    </QueryClientProvider>
+    )}</QueryClientProvider>
   );
 }
