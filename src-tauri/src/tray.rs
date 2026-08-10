@@ -39,7 +39,7 @@ pub fn init(app: &App) -> tauri::Result<()> {
     .icon(app.default_window_icon().unwrap().clone())
     .tooltip("EigenTime | Idle")
     .menu(&menu)
-    .menu_on_left_click(false) // left-click toggles window, right-click opens menu
+    .show_menu_on_left_click(false) // left-click toggles window, right-click opens menu
     .on_tray_icon_event({
       let h = handle.clone();
       move |_tray, event| {

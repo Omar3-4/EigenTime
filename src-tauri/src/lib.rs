@@ -55,7 +55,7 @@ fn spawn_eye_rest(app: tauri::AppHandle) {
   .build();
 }
 
-fn close_eye_rest(app: tauri::AppHandle) {
+#[tauri::command]`nfn close_eye_rest(app: tauri::AppHandle) {
   if let Some(win) = app.get_webview_window("eye_rest") {
     let _ = win.close();
   }
