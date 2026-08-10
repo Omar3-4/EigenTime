@@ -1,5 +1,6 @@
 import { isTauri } from "@tauri-apps/api/core";
 import { sendNotification } from "@tauri-apps/plugin-notification";
+import { playChime } from "./audio";
 import { register, unregisterAll } from "@tauri-apps/plugin-global-shortcut";
 
 export { register, unregisterAll };
@@ -33,6 +34,7 @@ export async function notifyPhaseComplete(phase: "focus" | "break") {
     ? "You crushed it. Time for a well-deserved break."
     : "Ready to step back into your flow state?";
   await notify(title, body);
+  playChime().catch(console.warn);
 }
 
 /**
@@ -43,6 +45,7 @@ export async function notifyDailyGoalAchieved(hours: number) {
   const title = "🏆 Daily Goal Achieved!";
   const body = `Incredible — you've hit your ${hours}h focus target for today. Outstanding work!`;
   await notify(title, body);
+  playChime().catch(console.warn);
 }
 
 export async function requestNotificationPermission() {

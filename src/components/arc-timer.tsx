@@ -16,14 +16,15 @@ import {
   Maximize,
   Minimize,
   PenTool,
-  BookOpen
+  BookOpen,
+  Wand2
 } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import type { Subject, TimerSnapshot } from "@/lib/db";
 import { useI18n } from "@/lib/i18n";
 import { toast } from "sonner";
 import { invoke, isTauri } from "@tauri-apps/api/core";
-import { buildFatigue } from "@/lib/analytics";
+import { buildFatigue, getOptimalPomodoro } from "@/lib/analytics";
 import {
   DEFAULT_DAILY_GOAL_HOURS,
   getSetting,
@@ -33,9 +34,9 @@ import {
   saveSession,
   scheduleTimerPersist,
   todayStat,
-  sessionsInRange,
   createSubject,
 } from "@/lib/repo";
+import { useSessions } from "@/components/sessions-provider";
 import {
   DEFAULT_POMO_BREAK_MIN,
   DEFAULT_POMO_FOCUS_MIN,
@@ -56,6 +57,7 @@ import { playChime } from "@/lib/audio";
 import { requestNotificationPermission, notifyPhaseComplete, notifyDailyGoalAchieved } from "@/lib/tauri";
 import { useGlobalShortcuts } from "@/hooks/use-global-shortcuts";
 import { useTrayBridge } from "@/hooks/use-tray-bridge";
+import { useTimerTick } from "./timer-tick-provider";
 
 const SIZE = 320;
 const R = 118;
@@ -65,7 +67,7 @@ export function ArcTimer() {
   const { t } = useI18n();
   const subjects = useLiveQuery(() => listSubjects(), [], [] as Subject[]);
   const stat = useLiveQuery(() => todayStat(), [], null);
-  const sessions = useLiveQuery(() => sessionsInRange(365), [], []);
+  const { sessions90: sessions } = useSessions();
   const goalHours =
     useLiveQuery(() => getSetting("dailyGoalHours", DEFAULT_DAILY_GOAL_HOURS), [], null) ??
     DEFAULT_DAILY_GOAL_HOURS;
@@ -73,7 +75,7 @@ export function ArcTimer() {
   const [snap, setSnap] = useState<TimerSnapshot>(() => emptyTimer());
   const [loaded, setLoaded] = useState(false);
   const [warnedFatigue, setWarnedFatigue] = useState(false);
-  const [, forceTick] = useState(0);
+  const { now } = useTimerTick();
   const past = useRef<TimerSnapshot[]>([]);
   const future = useRef<TimerSnapshot[]>([]);
 
@@ -85,6 +87,11 @@ export function ArcTimer() {
   const [pauseContext, setPauseContext] = useState("");
   const [subjectError, setSubjectError] = useState(false);
   const [subjectInput, setSubjectInput] = useState("");
+  const [topicInput, setTopicInput] = useState("");
+
+  useEffect(() => {
+    setTopicInput(snap.topic ?? "");
+  }, [snap.topic]);
 
   useEffect(() => {
     if (snap.subjectId && subjects) {
@@ -97,8 +104,15 @@ export function ArcTimer() {
 
   useEffect(() => {
     const onFullscreenChange = () => {
-      setIsZen(!!document.fullscreenElement);
-      if (!document.fullscreenElement) setZenEdge(false);
+      if (document.startViewTransition) {
+        document.startViewTransition(() => {
+          setIsZen(!!document.fullscreenElement);
+          if (!document.fullscreenElement) setZenEdge(false);
+        });
+      } else {
+        setIsZen(!!document.fullscreenElement);
+        if (!document.fullscreenElement) setZenEdge(false);
+      }
     };
     document.addEventListener("fullscreenchange", onFullscreenChange);
     requestNotificationPermission().catch(console.error);
@@ -136,29 +150,11 @@ export function ArcTimer() {
     scheduleTimerPersist(snap);
   }, [snap, loaded]);
 
-  useEffect(() => {
-    if (!isRunning(snap) && !snap.pausedAt) return;
-    const id = window.setInterval(() => forceTick((n) => n + 1), 250);
-    return () => window.clearInterval(id);
-  }, [snap.runningSince, snap.pausedAt]);
+
 
   
-  const eyeBreakEnabled = useLiveQuery(() => getSetting("eyeBreakEnabled", false, z.boolean()), [], false);
-  const lastEyeBreakRef = useRef(0);
-  const focusSecTotal = totalFocusSec(snap);
-  const eyeBounds = Math.floor(focusSecTotal / 1200);
 
-  useEffect(() => {
-    if (eyeBreakEnabled && isRunning(snap) && eyeBounds > 0 && eyeBounds > lastEyeBreakRef.current) {
-      lastEyeBreakRef.current = eyeBounds;
-      sendNotification({
-        title: "20-20-20 Eye Break",
-        body: "Time to look 20 feet away for 20 seconds to rest your eyes.",
-      });
-    }
-  }, [eyeBounds, eyeBreakEnabled, snap]);
-
-  const elapsed    = elapsedSeconds(snap);
+  const elapsed    = elapsedSeconds(snap, now);
   const running    = isRunning(snap);
   const isPomodoro = snap.mode === "pomodoro";
 
@@ -178,7 +174,7 @@ export function ArcTimer() {
     if (!isRunning(snap)) return;
 
     if (snap.mode === "pomodoro") {
-      if (remainingSeconds(snap) <= 0) {
+      if (remainingSeconds(snap, now) <= 0) {
         const wasFocus = snap.pomoPhase === "focus";
         const msg = wasFocus ? "Focus phase complete! Break time 🎉" : "Break over — back to focus!";
         toast.info(msg, { duration: 4000 });
@@ -199,29 +195,7 @@ export function ArcTimer() {
       }
     }
 
-    // 20-20-20 Rule for Focus modes (both stopwatch and pomo-focus)
-    const isFocusing = snap.mode === "stopwatch" || snap.pomoPhase === "focus";
-    if (isFocusing) {
-      const elapsedFocus = elapsedSeconds(snap);
-      const minutes = Math.floor(elapsedFocus / 60);
-      
-      // Trigger every 20 minutes (20, 40, 60...)
-      if (minutes > 0 && minutes % 20 === 0 && twentyWarnedRef.current !== minutes) {
-        twentyWarnedRef.current = minutes;
-        // Check if Tauri environment to spawn eye rest window
-        if (isTauri()) {
-          invoke("spawn_eye_rest").catch(console.error);
-        } else {
-          toast("20-20-20 Rule", {
-            description: "Look at something 20 feet away for 20 seconds.",
-            duration: 20000,
-          });
-        }
-      }
-    } else {
-      // Reset when not focusing
-      twentyWarnedRef.current = 0;
-    }
+
 
   }, [snap]);
 
@@ -232,7 +206,7 @@ export function ArcTimer() {
 
   useEffect(() => {
     if (!fatigue || warnedFatigue) return;
-    const currentElapsed = elapsedSeconds(snap);
+    const currentElapsed = elapsedSeconds(snap, now);
     const estimatedRisk = Math.min(100, fatigue.risk + (currentElapsed / 3600 / 6) * 45);
     if (estimatedRisk > 80) {
       toast.warning("Fatigue Warning", {
@@ -312,6 +286,21 @@ export function ArcTimer() {
     toast.success(`Pomodoro updated: ${pomoFocusMin}m focus / ${pomoBreakMin}m break`);
   };
 
+  const autoTunePomodoro = () => {
+    if (!sessions || sessions.length === 0) {
+      toast.error("Not enough focus history to auto-tune.");
+      return;
+    }
+    const optimal = getOptimalPomodoro(sessions);
+    if (!optimal) {
+      toast.error("Not enough diverse sessions to find optimal duration.");
+      return;
+    }
+    setPomoFocusMin(optimal.focusMin);
+    setPomoBreakMin(optimal.breakMin);
+    toast.success(`Auto-tuned to ${optimal.focusMin}m focus (FEI score: ${optimal.fei})`);
+  };
+
   const switchMode = (mode: "stopwatch" | "pomodoro") => {
     commit({
       ...snap,
@@ -330,7 +319,7 @@ export function ArcTimer() {
   };
 
   const finish = async () => {
-    const total = Math.round(totalFocusSec(snap));
+    const total = Math.round(totalFocusSec(snap, now));
     if (total < 1) return;
     const startedAt = snap.overallStartedAt ?? (Date.now() - total * 1000);
     const sessionInput = {
@@ -338,7 +327,7 @@ export function ArcTimer() {
       startedAt,
       endedAt: Date.now(),
       durationSec: total,
-      mode: snap.pomoPhase === "break" ? ("rest" as const) : ("focus" as const),
+      mode: "focus" as const,
       difficulty: snap.difficulty,
       ...(snap.mode === "pomodoro" && snap.pomoFocusSec !== undefined ? { targetSec: snap.pomoFocusSec } : snap.targetSec !== undefined ? { targetSec: snap.targetSec } : {}),
       ...(snap.pauseCount !== undefined ? { pauseCount: snap.pauseCount } : {}),
@@ -375,9 +364,9 @@ export function ArcTimer() {
     setScratchInput("");
   };
 
-  const rawRatio = progress(snap);
+  const rawRatio = progress(snap, now);
   const ratio = Number.isFinite(rawRatio) ? rawRatio : 0;
-  const displaySec = isPomodoro ? remainingSeconds(snap) : elapsed;
+  const displaySec = isPomodoro ? remainingSeconds(snap, now) : elapsed;
   const phase = snap.pomoPhase ?? "focus";
   const isDeepFlow = running && elapsed > 20 * 60 && phase === "focus";
 
@@ -406,7 +395,7 @@ export function ArcTimer() {
   // Calculate live break time for the secondary stopwatch
   let liveBreakSec = snap.pauseDurationSec ?? 0;
   if (snap.pausedAt) {
-    liveBreakSec += (Date.now() - snap.pausedAt) / 1000;
+    liveBreakSec += (now - snap.pausedAt) / 1000;
   }
 
   // Handle subtle edge mode render
@@ -414,7 +403,7 @@ export function ArcTimer() {
     return (
       <div className="fixed inset-0 z-50 bg-background flex flex-col items-center justify-center group" onClick={() => toggleZen(false)}>
         <div 
-          className="fixed top-0 left-0 h-[2px] transition-all bg-focus" 
+          className="fixed top-0 start-0 h-[2px] transition-all bg-focus" 
           style={{ width: `${ratio * 100}%`, background: arcColor, filter: isDeepFlow ? "drop-shadow(0 0 10px rgba(0,240,255,1))" : "none" }}
         />
         <div className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground flex flex-col items-center gap-4">
@@ -435,7 +424,7 @@ export function ArcTimer() {
             : "glass rounded-3xl"
         )}
       >
-        <div className="absolute top-6 right-6 flex items-center gap-2">
+        <div className="absolute top-6 end-6 flex items-center gap-2">
           {isZen && (
             <button 
               onClick={() => setZenEdge(true)} 
@@ -557,11 +546,22 @@ export function ArcTimer() {
 
         {/* Context Dump UI When Paused */}
         {!running && snap.pausedAt && (
-          <div className="w-full max-w-sm flex flex-col gap-2">
-             <div className="bg-secondary/50 rounded-xl p-3 border border-border">
-               <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wider">Context Dump</p>
-               <input 
-                 className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground/50" 
+          <div className="w-full max-w-sm flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+             {/* Health Restorative Activity Suggestions */}
+             <div className="bg-blue-500/10 rounded-xl p-4 border border-blue-500/20">
+               <p className="text-xs font-semibold text-blue-500 mb-2 uppercase tracking-wider">Health Suggestions</p>
+               <ul className="text-sm text-muted-foreground space-y-1">
+                 <li>💧 Drink a glass of water</li>
+                 <li>🧘 Stretch your shoulders & neck</li>
+                 <li>👀 Look at something 20 feet away</li>
+               </ul>
+             </div>
+
+             <div className="bg-secondary/50 rounded-xl p-4 border border-border">
+               <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Context Dump</p>
+               <textarea 
+                 className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground/50 resize-none" 
+                 rows={3}
                  placeholder="Where did you stop? What is your next step?" 
                  value={pauseContext}
                  onChange={e => setPauseContext(e.target.value)}
@@ -721,8 +721,22 @@ export function ArcTimer() {
                 const existing = subjects?.find(s => s.name.toLowerCase() === e.target.value.trim().toLowerCase());
                 if (existing) {
                   commit({ ...snap, subjectId: existing.id });
-                } else if (snap.subjectId) {
+                } else if (e.target.value.trim() === "") {
                   commit({ ...snap, subjectId: "" });
+                }
+                // If it's a partial type, we do NOT clear snap.subjectId. 
+                // This prevents the session from detaching during typing.
+              }}
+              onBlur={() => {
+                // If they typed something that doesn't match an existing subject, 
+                // and it's not empty, we revert the input to the actual selected subject to avoid confusion.
+                const val = subjectInput.trim();
+                if (val) {
+                  const existing = subjects?.find(s => s.name.toLowerCase() === val.toLowerCase());
+                  if (!existing) {
+                    const currentSubject = subjects?.find(s => s.id === snap.subjectId);
+                    setSubjectInput(currentSubject?.name ?? "");
+                  }
                 }
               }}
               className={cn(
@@ -748,8 +762,9 @@ export function ArcTimer() {
             <input
               type="text"
               placeholder="What are you focusing on?"
-              value={snap.topic ?? ""}
-              onChange={(e) => commit({ ...snap, topic: e.target.value })}
+              value={topicInput}
+              onChange={(e) => setTopicInput(e.target.value)}
+              onBlur={() => commit({ ...snap, topic: topicInput })}
               className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none transition-all hover:border-muted-foreground/30 focus:border-ring focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
             />
           </div>
@@ -781,9 +796,19 @@ export function ArcTimer() {
 
         {(snap.mode ?? "stopwatch") === "pomodoro" && (
           <div className="space-y-4 rounded-2xl bg-secondary/50 p-4">
-            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              🎯 Pomodoro Settings
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                🎯 Pomodoro Settings
+              </p>
+              <button
+                type="button"
+                onClick={autoTunePomodoro}
+                className="text-xs font-semibold text-primary transition-colors hover:text-primary/80"
+              >
+                <Wand2 className="size-3.5 inline-block mr-1 align-sub" />
+                Auto-tune
+              </button>
+            </div>
 
             <div className="space-y-1">
               <div className="flex justify-between text-xs">

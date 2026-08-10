@@ -70,6 +70,16 @@ pub fn run() {
       spawn_eye_rest,
       close_eye_rest
     ])
+    .on_window_event(|window, event| match event {
+      tauri::WindowEvent::CloseRequested { api, .. } => {
+        if window.label() == "main" {
+          api.prevent_close();
+          let _ = window.hide();
+          spawn_widget(window.app_handle().clone());
+        }
+      }
+      _ => {}
+    })
     .setup(|app| {
       // System Tray
       tray::init(app)?;

@@ -1,26 +1,21 @@
 import { useEffect, useState } from "react";
-import { getSetting } from "@/lib/repo";
+import { useLiveQuery } from "dexie-react-hooks";
 import { getCurrentStreak } from "@/lib/streaks";
-import { getDb, type UserBadge } from "@/lib/db";
+import { getDb } from "@/lib/db";
+import { getTotalXP } from "@/lib/repo";
 import { calculateLevel, xpForNextLevel, xpForCurrentLevel } from "@/lib/gamification";
 import { Trophy, Flame, Star, Medal } from "lucide-react";
 
 export function GamificationProfile() {
-  const [xp, setXp] = useState(0);
   const [streak, setStreak] = useState({ streak: 0, highest: 0 });
-  const [badges, setBadges] = useState<UserBadge[]>([]);
+
+  const xp = useLiveQuery(() => getTotalXP(), []) ?? 0;
+  const badges = useLiveQuery(() => getDb().badges.toArray(), []) ?? [];
 
   useEffect(() => {
     async function load() {
-      const globalXp = (await getSetting("globalXp", 0, (x) => Number(x))) as number;
-      setXp(globalXp);
-
       const st = await getCurrentStreak();
       setStreak(st);
-
-      const db = getDb();
-      const b = await db.badges.toArray();
-      setBadges(b);
     }
     load();
   }, []);
@@ -40,7 +35,7 @@ export function GamificationProfile() {
         <div className="flex-1">
           <div className="flex items-baseline justify-between">
             <h3 className="font-semibold text-lg text-card-foreground">Scholar Lv. {level}</h3>
-            <span className="text-xs text-muted-foreground">{xp} XP</span>
+            <span className="text-xs text-muted-foreground">{xp.toFixed(0)} XP</span>
           </div>
           <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-secondary">
             <div

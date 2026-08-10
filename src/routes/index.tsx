@@ -23,15 +23,18 @@ import {
   listSubjects,
   listTasks,
   recentSessions,
-  sessionsInRange,
   todayStat,
   toggleTask,
 } from "@/lib/repo";
+import { useSessions } from "@/components/sessions-provider";
 import { predictNextTask, buildHabitHealthScore } from "@/lib/analytics";
 import { NextTaskPanel, HabitHealthPanel } from "@/components/behavioral-panels";
 import { formatHoursShort } from "@/lib/time";
 import { subjectColorVar, subjectSoftVar } from "@/lib/subject-colors";
 import { cn } from "@/lib/utils";
+import { getDb } from "@/lib/db";
+import { totalFocusSec } from "@/lib/timer-engine";
+import { useTimerTick } from "@/components/timer-tick-provider";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -45,7 +48,14 @@ export const Route = createFileRoute("/")({
 
 function DashboardPage() {
   const { t } = useI18n();
-  const stat = useLiveQuery(() => todayStat(), [], null);
+  const statRow = useLiveQuery(() => todayStat(), [], null);
+  
+  const { now } = useTimerTick();
+  const currentSnapRow = useLiveQuery(() => getDb().timerSnapshots.get("current"), [], null);
+  const liveFocus = currentSnapRow?.snapshot ? Math.round(totalFocusSec(currentSnapRow.snapshot, now)) : 0;
+  
+  const stat = statRow ? { ...statRow, totalSec: statRow.totalSec + liveFocus } : null;
+
   const goalHours =
     useLiveQuery(
       () => getSetting("dailyGoalHours", DEFAULT_DAILY_GOAL_HOURS, z.number()),
@@ -346,18 +356,18 @@ function LastSession() {
 function DashboardInsights() {
   const data = useLiveQuery(
     async () => {
-      const [sess, subj, tsk] = await Promise.all([
-        sessionsInRange(90),
+      const [subj, tsk] = await Promise.all([
         listSubjects(),
         listTasks(),
       ]);
-      return { sessions: sess, subjects: subj, tasks: tsk };
+      return { subjects: subj, tasks: tsk };
     },
     [],
-    { sessions: [], subjects: [], tasks: [] },
+    { subjects: [], tasks: [] },
   );
 
-  const { sessions, subjects, tasks } = data;
+  const { subjects, tasks } = data;
+  const { sessions90: sessions } = useSessions();
 
   const nextTask = predictNextTask(tasks, sessions, subjects);
   const habitHealth = buildHabitHealthScore(sessions);

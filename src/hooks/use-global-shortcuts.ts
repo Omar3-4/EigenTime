@@ -41,10 +41,13 @@ export function useGlobalShortcuts(enabled: boolean, callbacks: ShortcutCallback
 
     let registered = false;
 
+    let cancelled = false;
+
     const registerAll = async () => {
       try {
         // Register each shortcut, gracefully ignoring conflicts
         for (const { combo, key } of SHORTCUTS) {
+          if (cancelled) break;
           try {
             await register(combo, (event) => {
               if (event.state !== "Pressed") return;
@@ -79,6 +82,7 @@ export function useGlobalShortcuts(enabled: boolean, callbacks: ShortcutCallback
     registerAll();
 
     return () => {
+      cancelled = true;
       if (registered && isTauri()) {
         // Unregister all EigenTime shortcuts on unmount
         unregisterAll().catch((err) => {

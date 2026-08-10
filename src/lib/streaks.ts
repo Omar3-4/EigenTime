@@ -16,7 +16,7 @@ export async function getCurrentStreak(): Promise<{ streak: number; highest: num
   const today = dayKey();
   const yesterdayDate = new Date();
   yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-  const yesterday = yesterdayDate.toISOString().split("T")[0];
+  const yesterday = yesterdayDate.toISOString().split("T")[0] as string;
 
   let expectedNextDay: string | null = null;
   let isCurrentStreakValid = true;
@@ -34,7 +34,7 @@ export async function getCurrentStreak(): Promise<{ streak: number; highest: num
       } else {
         const prev = new Date(lastDaySeen);
         prev.setDate(prev.getDate() + 1);
-        if (prev.toISOString().split("T")[0] === stat.day) {
+        if (prev.toISOString().split("T")[0] as string === stat.day) {
           tempHighStreak++;
         } else {
           tempHighStreak = 1;
@@ -53,7 +53,7 @@ export async function getCurrentStreak(): Promise<{ streak: number; highest: num
           currentStreak = 1;
           const prev = new Date(stat.day);
           prev.setDate(prev.getDate() - 1);
-          expectedNextDay = prev.toISOString().split("T")[0];
+          expectedNextDay = prev.toISOString().split("T")[0] as string;
         } else {
           isCurrentStreakValid = false;
         }
@@ -62,7 +62,7 @@ export async function getCurrentStreak(): Promise<{ streak: number; highest: num
           currentStreak++;
           const prev = new Date(stat.day);
           prev.setDate(prev.getDate() - 1);
-          expectedNextDay = prev.toISOString().split("T")[0];
+          expectedNextDay = prev.toISOString().split("T")[0] as string;
         } else {
           isCurrentStreakValid = false;
         }

@@ -33,7 +33,8 @@ export function buildHeatmap(sessions: Session[], today = new Date()): HeatCell[
 
   const cells: HeatCell[] = [];
   const cursor = new Date(start);
-  while (cursor <= end) {
+  const endKey = dayKey(end);
+  while (dayKey(cursor) <= endKey) {
     const key = dayKey(cursor);
     const list = byDay.get(key) ?? [];
     const totalSec = list.reduce((a, s) => a + s.durationSec, 0);
@@ -316,7 +317,7 @@ export function buildFatigue(sessions: Session[]): FatigueWarning {
     const key = dayKey(d);
     return focus.filter((s) => s.day === key).reduce((a, s) => a + s.durationSec, 0) / 3600;
   };
-  const last3 = dayHours(0) + dayHours(1) + dayHours(2);
+  const last3 = dayHours(1) + dayHours(2) + dayHours(3);
 
   // within-day decline: average duration of the last third of today's sessions vs the first third
   const todays = focus.filter((s) => s.day === today).sort((a, b) => a.startedAt - b.startedAt);
@@ -650,4 +651,132 @@ export function buildLifestyleCorrelation(sessions: Session[]): LifestyleCorrela
   }
 
   return correlations.sort((a, b) => Math.abs(b.correlation) - Math.abs(a.correlation));
+}
+
+/* ---------------------------------------------------- forecasting */
+
+export interface Forecast {
+  day: string;
+  predictedSec: number;
+  trend: "up" | "down" | "flat";
+}
+
+export function forecastNextDays(sessions: Session[], daysToPredict = 3): Forecast[] {
+  const focus = sessions.filter(s => s.mode === "focus");
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const historyDays = 30;
+  const data: {x: number, y: number}[] = [];
+  
+  for (let i = historyDays - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const key = dayKey(d);
+    const totalSec = focus.filter(s => s.day === key).reduce((a, s) => a + s.durationSec, 0);
+    data.push({ x: historyDays - i, y: totalSec });
+  }
+
+  const n = data.length;
+  let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+  for (const p of data) {
+    sumX += p.x;
+    sumY += p.y;
+    sumXY += p.x * p.y;
+    sumXX += p.x * p.x;
+  }
+
+  const denominator = n * sumXX - sumX * sumX;
+  const slope = denominator === 0 ? 0 : (n * sumXY - sumX * sumY) / denominator;
+  const intercept = (sumY - slope * sumX) / n;
+
+  const results: Forecast[] = [];
+  for (let i = 1; i <= daysToPredict; i++) {
+    const futureDate = new Date(today);
+    futureDate.setDate(futureDate.getDate() + i);
+    let pred = slope * (historyDays + i) + intercept;
+    if (pred < 0) pred = 0;
+    results.push({
+      day: dayKey(futureDate),
+      predictedSec: Math.round(pred),
+      trend: slope > 100 ? "up" : slope < -100 ? "down" : "flat"
+    });
+  }
+  return results;
+}
+
+/* ---------------------------------------------- adaptive pomodoro */
+
+export function getOptimalPomodoro(sessions: Session[]): { focusMin: number; breakMin: number; fei: number } | null {
+  const focus = sessions.filter(s => s.mode === "focus" && typeof s.fei === "number" && s.durationSec >= 300);
+  if (focus.length < 5) return null;
+
+  const groups = new Map<number, { feiSum: number; count: number }>();
+  for (const s of focus) {
+    const min = Math.round(s.durationSec / 60 / 5) * 5;
+    if (min < 10 || min > 120) continue;
+    const g = groups.get(min) ?? { feiSum: 0, count: 0 };
+    g.feiSum += s.fei!;
+    g.count++;
+    groups.set(min, g);
+  }
+
+  let bestMin = 25;
+  let bestScore = -1;
+  for (const [min, g] of groups.entries()) {
+    if (g.count < 2) continue;
+    const avg = g.feiSum / g.count;
+    if (avg > bestScore) {
+      bestScore = avg;
+      bestMin = min;
+    }
+  }
+  if (bestScore === -1) return null;
+
+  return { focusMin: bestMin, breakMin: Math.max(5, Math.round(bestMin / 5)), fei: Math.round(bestScore) };
+}
+
+/* ---------------------------------------------- smart task prediction (KNN) */
+
+export function predictTasksKNN(tasks: import("./db").Task[], currentSubjectId: string | null): string[] {
+  if (tasks.length === 0) return [];
+  const now = new Date();
+  const currentHour = now.getHours() + now.getMinutes() / 60;
+  const currentDay = now.getDay();
+
+  const distances = tasks.map(t => {
+    let dist = 0;
+    if (t.subjectId !== currentSubjectId) dist += 100;
+
+    const tDate = new Date(t.createdAt);
+    const tHour = tDate.getHours() + tDate.getMinutes() / 60;
+    const tDay = tDate.getDay();
+
+    const hourDiff = Math.abs(currentHour - tHour);
+    const minHourDiff = Math.min(hourDiff, 24 - hourDiff);
+    dist += minHourDiff * 2; // weight hour difference
+
+    const dayDiff = Math.abs(currentDay - tDay);
+    const minDayDiff = Math.min(dayDiff, 7 - dayDiff);
+    dist += minDayDiff * 5; // weight day difference
+
+    return { title: t.title, dist };
+  });
+
+  distances.sort((a, b) => a.dist - b.dist);
+
+  const k = 10;
+  const topK = distances.slice(0, k);
+  
+  // Count frequencies in top K
+  const freqs = new Map<string, number>();
+  for (const item of topK) {
+    // Filter out tasks already in the list that are incomplete
+    const isCurrentlyActive = tasks.some(existing => existing.title.toLowerCase() === item.title.toLowerCase() && existing.done === 0);
+    if (isCurrentlyActive) continue;
+
+    freqs.set(item.title, (freqs.get(item.title) ?? 0) + (1 / (item.dist + 1)));
+  }
+
+  const sortedTitles = Array.from(freqs.entries()).sort((a, b) => b[1] - a[1]).map(e => e[0]);
+  return sortedTitles.slice(0, 3); // top 3 suggestions
 }

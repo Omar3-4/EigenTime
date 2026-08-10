@@ -81,7 +81,7 @@ export function ActivityHeatmap({
                 onClick={() => setIs3D(!is3D)}
                 title="Toggle 3D Heatmap"
                 className={cn(
-                  "flex items-center justify-center p-1.5 rounded-lg transition-colors border mr-2",
+                  "flex items-center justify-center p-1.5 rounded-lg transition-colors border me-2",
                   is3D
                     ? "bg-focus text-focus-foreground border-transparent"
                     : "hover:bg-secondary border-border text-muted-foreground",

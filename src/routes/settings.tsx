@@ -38,6 +38,7 @@ import {
   getSavedThemeId,
   type ThemeConfig,
 } from "@/lib/themes";
+import { encryptData, decryptData } from "@/lib/crypto";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -74,6 +75,7 @@ function SettingsPage() {
 function SettingsSuite() {
   const { t, lang, setLang } = useI18n();
   const fileRef = useRef<HTMLInputElement>(null);
+  const fileEncryptedRef = useRef<HTMLInputElement>(null);
   const [showConfirmReset, setShowConfirmReset] = useState(false);
   const [activeThemeId, setActiveThemeId] = useState<string>(getSavedThemeId);
 
@@ -156,6 +158,38 @@ function SettingsSuite() {
       setTimeout(() => window.location.reload(), 1000);
     } catch {
       toast.error("Import Failed", { description: "Invalid backup JSON file format." });
+    }
+  };
+
+  const downloadEncrypted = async () => {
+    const pwd = window.prompt("Enter a password to encrypt your backup:");
+    if (!pwd) return;
+    try {
+      const json = await exportAll();
+      const encrypted = await encryptData(json, pwd);
+      const url = URL.createObjectURL(new Blob([encrypted], { type: "text/plain" }));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `eigentime-backup-encrypted-${new Date().toISOString().slice(0, 10)}.enc`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Encrypted Backup Downloaded", { description: "AES-GCM secured backup." });
+    } catch (e) {
+      toast.error("Encryption Failed", { description: String(e) });
+    }
+  };
+
+  const uploadEncrypted = async (file: File) => {
+    const pwd = window.prompt("Enter the password to decrypt your backup:");
+    if (!pwd) return;
+    try {
+      const encText = await file.text();
+      const json = await decryptData(encText, pwd);
+      await importAll(json);
+      toast.success("Backup Restored", { description: "Application reloaded with imported data." });
+      setTimeout(() => window.location.reload(), 1000);
+    } catch (e) {
+      toast.error("Decryption Failed", { description: "Invalid password or corrupted backup." });
     }
   };
 
@@ -660,20 +694,48 @@ function SettingsSuite() {
             </button>
             <button
               type="button"
+              onClick={() => void downloadEncrypted()}
+              className="flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-secondary"
+            >
+              <Download className="size-4 text-purple-500" />
+              Encrypted Backup
+            </button>
+            <button
+              type="button"
               onClick={() => fileRef.current?.click()}
               className="flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-secondary"
             >
               <Upload className="size-4 text-orange-500" />
               {t("importJson")}
             </button>
+            <button
+              type="button"
+              onClick={() => fileEncryptedRef.current?.click()}
+              className="flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-secondary"
+            >
+              <Upload className="size-4 text-purple-500" />
+              Import Encrypted
+            </button>
             <input
               ref={fileRef}
               type="file"
-              accept="application/json"
+              accept=".json"
               className="hidden"
               onChange={(e) => {
                 const f = e.target.files?.[0];
                 if (f) void upload(f);
+                e.target.value = "";
+              }}
+            />
+            <input
+              ref={fileEncryptedRef}
+              type="file"
+              accept=".enc"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) void uploadEncrypted(f);
+                e.target.value = "";
               }}
             />
             <button

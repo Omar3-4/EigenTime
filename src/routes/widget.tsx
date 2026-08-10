@@ -8,7 +8,8 @@ import { invoke } from "@tauri-apps/api/core";
 
 // We can read from indexedDB directly to show the active session
 // Or since the main window handles timer logic, we just send commands to it
-import { loadTimer, listSubjects, type TimerSnapshot } from "@/lib/repo";
+import { loadTimer, listSubjects } from "@/lib/repo";
+import type { TimerSnapshot } from "@/lib/db";
 
 export const Route = createFileRoute("/widget")({
   component: Widget,
@@ -75,10 +76,10 @@ function Widget() {
 
         <div className="flex gap-1">
           <button
-            onClick={() => sendAction(isRunning ? "pause" : "resume")}
+            onClick={() => sendAction("toggle-play")}
             className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors"
           >
-            {isRunning ? <Pause size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" className="ml-0.5" />}
+            {isRunning ? <Pause size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" className="ms-0.5" />}
           </button>
         </div>
       </div>

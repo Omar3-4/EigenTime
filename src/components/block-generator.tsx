@@ -176,7 +176,7 @@ export function BlockGeneratorModal({
                     key={s.subjectId}
                     className="flex items-center gap-2 bg-secondary/50 p-2 rounded-xl border border-border"
                   >
-                    <span className="flex-1 text-sm font-medium pl-2 truncate">{sub?.name}</span>
+                    <span className="flex-1 text-sm font-medium ps-2 truncate">{sub?.name}</span>
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-muted-foreground">Weight:</span>
                       <input

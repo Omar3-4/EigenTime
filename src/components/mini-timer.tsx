@@ -6,19 +6,17 @@ import { formatHMS } from "@/lib/time";
 import { Brain, Coffee, Play } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { useTimerTick } from "./timer-tick-provider";
 
 export function MiniTimerWidget() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const snapRow = useLiveQuery(() => getDb().timerSnapshots.get("current"), [], null);
   const snap = snapRow?.snapshot;
 
-  const [, setTick] = useState(0);
-
-  useEffect(() => {
-    if (!snap || !isRunning(snap)) return;
-    const id = setInterval(() => setTick((n) => n + 1), 1000);
-    return () => clearInterval(id);
-  }, [snap]);
+  const { now } = useTimerTick();
+  const elapsed = snap
+    ? snap.accumulatedSec + (isRunning(snap) ? (now - snap.runningSince!) / 1000 : 0)
+    : 0;
 
   // Hide if on timer page or if timer is completely empty/stopped
   if (pathname === "/timer" || !snap) return null;
@@ -29,10 +27,10 @@ export function MiniTimerWidget() {
 
   const isPomodoro = snap.mode === "pomodoro";
   const phase = snap.pomoPhase ?? "focus";
-  const displaySec = isPomodoro ? remainingSeconds(snap) : elapsedSeconds(snap);
+  const displaySec = isPomodoro ? remainingSeconds(snap, now) : elapsedSeconds(snap, now);
 
   const activeColor = isPomodoro && phase === "break" ? "#10b981" : "var(--focus)";
-  const isDeepFlow = running && elapsedSeconds(snap) > 20 * 60 && phase === "focus";
+  const isDeepFlow = running && elapsedSeconds(snap, now) > 20 * 60 && phase === "focus";
 
   return (
     <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-top-4 fade-in duration-500">
@@ -51,7 +49,7 @@ export function MiniTimerWidget() {
           style={{ background: isDeepFlow ? "#00f0ff" : activeColor }}
         >
           {!running ? (
-            <Play className="size-3 pl-0.5" />
+            <Play className="size-3 ps-0.5" />
           ) : isPomodoro && phase === "break" ? (
             <Coffee className="size-3" />
           ) : (

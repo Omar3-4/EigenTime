@@ -172,19 +172,20 @@ async function rollUpDay(day: string): Promise<void> {
 }
 
 export async function todayStat(): Promise<DailyStat> {
-  const day = dayKey();
+  const day = dayKey(new Date());
   const row = await getDb().dailyStats.get(day);
   return row ?? { day, totalSec: 0, sessionCount: 0, topSubjectId: null };
 }
 
 export async function recentSessions(limit = 8): Promise<Session[]> {
-  const all = await getDb().sessions.orderBy("startedAt").reverse().limit(limit).toArray();
-  return all;
+  const all = await getDb().sessions.orderBy("startedAt").reverse().toArray();
+  return all.filter((s) => s.durationSec > 0).slice(0, limit);
 }
 
 /** Full session log — only used for analytics with a bounded window. */
 export async function allSessions(): Promise<Session[]> {
-  return getDb().sessions.orderBy("startedAt").toArray();
+  const all = await getDb().sessions.orderBy("startedAt").toArray();
+  return all.filter((s) => s.durationSec > 0);
 }
 
 /**
@@ -192,8 +193,10 @@ export async function allSessions(): Promise<Session[]> {
  * Prevents loading thousands of rows into memory after long-term use.
  */
 export async function sessionsInRange(days = 365): Promise<Session[]> {
-  const cutoff = Date.now() - days * 86_400_000;
-  return getDb().sessions.where("startedAt").aboveOrEqual(cutoff).sortBy("startedAt");
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  const cutoffDay = dayKey(d);
+  return getDb().sessions.where("day").aboveOrEqual(cutoffDay).sortBy("startedAt");
 }
 
 export async function weeklySecondsBySubject(): Promise<Record<string, number>> {

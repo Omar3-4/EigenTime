@@ -40,6 +40,7 @@ export function useTrayBridge(snap: TimerSnapshot, callbacks: TrayBridgeCallback
     if (!isTauri()) return;
 
     let unlisten: UnlistenFn | undefined;
+    let cancelled = false;
 
     listen<TrayAction>("tray:action", (event) => {
       switch (event.payload) {
@@ -55,11 +56,16 @@ export function useTrayBridge(snap: TimerSnapshot, callbacks: TrayBridgeCallback
       }
     })
       .then((fn) => {
-        unlisten = fn;
+        if (cancelled) {
+          fn();
+        } else {
+          unlisten = fn;
+        }
       })
       .catch(console.error);
 
     return () => {
+      cancelled = true;
       unlisten?.();
     };
   }, []);

@@ -194,17 +194,15 @@
 }
 
 @utility glass {
-  background: var(--bg-glass, var(--card));
+  background: color-mix(in srgb, var(--bg-glass, var(--card)) 85%, transparent);
   border: 1px solid var(--border-glass, var(--border));
   box-shadow: var(--shadow-glass);
-  backdrop-filter: blur(20px) saturate(150%);
 }
 
 @utility glass-strong {
-  background: var(--bg-glass, var(--card));
+  background: color-mix(in srgb, var(--bg-glass, var(--card)) 90%, transparent);
   border: 1px solid var(--border-glass, var(--border));
   box-shadow: var(--shadow-lift);
-  backdrop-filter: blur(24px) saturate(160%);
 }
 
 @utility tabular {
@@ -241,4 +239,13 @@
 }
 .orb-spin {
   animation: orb-spin linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

@@ -74,6 +74,8 @@ function SubjectsBody() {
             ? Math.min(100, Math.round((sec / (s.weeklyTargetHours * 3600)) * 100))
             : 0;
           const cardColor = getSubjectColor(s.color);
+          const balanceSec = sec - (s.weeklyTargetHours * 3600);
+          const isSurplus = balanceSec >= 0;
           return (
             <article
               key={s.id}
@@ -89,9 +91,14 @@ function SubjectsBody() {
                 />
                 <div className="min-w-0 flex-1">
                   <h3 className="truncate text-sm font-semibold">{s.name}</h3>
-                  <p className="tabular text-xs text-muted-foreground">
-                    {formatHoursShort(sec)} / {s.weeklyTargetHours}h · {t("thisWeek")}
-                  </p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <p className="tabular text-xs text-muted-foreground">
+                      {t("thisWeek")}
+                    </p>
+                    <span className={cn("text-[10px] font-bold px-1.5 py-0.5 rounded-sm", isSurplus ? "bg-emerald-500/10 text-emerald-500" : "bg-destructive/10 text-destructive")}>
+                      {isSurplus ? "+" : "-"}{formatHoursShort(Math.abs(balanceSec))} {isSurplus ? "surplus" : "debt"}
+                    </span>
+                  </div>
                 </div>
                 <button
                   type="button"
@@ -114,7 +121,15 @@ function SubjectsBody() {
                   <Trash2 className="size-4" />
                 </button>
               </div>
-              <div className="mt-4 h-2 overflow-hidden rounded-full bg-secondary">
+              <div className="mt-4 flex items-center justify-between text-xs mb-1">
+                 <span className="text-muted-foreground font-medium">
+                   {formatHoursShort(sec)}
+                 </span>
+                 <span className="text-muted-foreground">
+                   {s.weeklyTargetHours}h
+                 </span>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-secondary">
                 <div
                   className="h-full rounded-full transition-[width]"
                   style={{ width: `${pct}%`, background: cardColor }}

@@ -56,7 +56,8 @@ function AnalyticsPage() {
   );
 }
 
-import { Responsive, useContainerWidth, type Layouts } from "react-grid-layout";
+import { Responsive, useContainerWidth } from "react-grid-layout";
+type Layouts = { [key: string]: any[] };
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import { Settings2, Save } from "lucide-react";
@@ -107,7 +108,7 @@ function AnalyticsBody() {
     return defaultLayouts;
   });
 
-  const handleLayoutChange = (currentLayout: unknown, allLayouts: Layouts) => {
+  const handleLayoutChange = (currentLayout: any, allLayouts: any) => {
     setLayouts(allLayouts);
   };
 
@@ -215,7 +216,7 @@ function AnalyticsBody() {
         (() => {
           const currentLayouts: Layouts = {};
           for (const key of Object.keys(layouts)) {
-            currentLayouts[key] = layouts[key].map((l) => ({ ...l, static: !isEditing }));
+            currentLayouts[key] = layouts[key]?.map((l: any) => ({ ...l, static: !isEditing })) || [];
           }
           return (
             <div dir="ltr">
@@ -227,6 +228,7 @@ function AnalyticsBody() {
                 cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
                 rowHeight={160}
                 onLayoutChange={handleLayoutChange}
+                // @ts-ignore
                 isDraggable={isEditing}
                 isResizable={isEditing}
                 margin={[16, 16]}

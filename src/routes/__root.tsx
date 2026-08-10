@@ -4,6 +4,8 @@ import { useEffect } from "react";
 import { applyTheme, getSavedThemeId } from "../lib/themes";
 import "../styles.css";
 import { I18nProvider } from "../lib/i18n";
+import { TimerTickProvider } from "@/components/timer-tick-provider";
+import { SessionsProvider } from "@/components/sessions-provider";
 
 function NotFoundComponent() {
   return (
@@ -77,9 +79,13 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <I18nProvider>
-        <Outlet />
-      </I18nProvider>
+      <TimerTickProvider>
+        <SessionsProvider>
+          <I18nProvider>
+            <Outlet />
+          </I18nProvider>
+        </SessionsProvider>
+      </TimerTickProvider>
     </QueryClientProvider>
   );
 }
