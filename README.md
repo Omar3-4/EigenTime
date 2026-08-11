@@ -43,5 +43,6 @@ Head over to the [Releases](https://github.com/Omar3-4/EigenTime/releases) page 
 > Because EigenTime is a free, open-source project developed without a paid corporate code-signing certificate, Windows SmartScreen will show a blue **'Windows protected your PC'** warning when you first open the installer.
 >
 > To install safely:
+>
 > 1. Click **More info** on the blue screen.
 > 2. Click **Run anyway**.

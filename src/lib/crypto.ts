@@ -46,7 +46,7 @@ export async function encryptData(text: string, password: string): Promise<strin
 export async function decryptData(b64: string, password: string): Promise<string> {
   const bin = atob(b64);
   const combined = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) combined[i] = bin.charCodeAt(i);
+  for (let i = 0; i < bin.length; i++) combined[i] = bin.codePointAt(i) ?? 0;
 
   const salt = combined.slice(0, 16);
   const iv = combined.slice(16, 28);

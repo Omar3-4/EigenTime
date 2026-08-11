@@ -339,7 +339,7 @@ export async function exportCsv(): Promise<string> {
   for (const s of sessions) {
     const subName = s.subjectId ? (subjectMap.get(s.subjectId) ?? "Unknown") : "None";
     const date = new Date(s.startedAt).toISOString();
-    const note = s.note ? `"${s.note.replace(/"/g, '""')}"` : "";
+    const note = s.note ? `"${s.note.replaceAll('"', '""')}"` : "";
     csv += `${s.id},${date},${subName},${s.mode},${s.durationSec},${s.difficulty},${s.fei ?? ""},${s.xp ?? ""},${note}\n`;
   }
   return csv;

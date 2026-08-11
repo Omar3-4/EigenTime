@@ -27,7 +27,7 @@ export function MiniTimerWidget() {
   const snap = snapRow?.snapshot;
 
   const { now } = useTimerTick();
-  
+
   if (pathname === "/timer" || !snap) return null;
 
   const running = isRunning(snap);

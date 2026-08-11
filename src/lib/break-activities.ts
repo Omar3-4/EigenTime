@@ -21,7 +21,7 @@ export function getBreakActivity(): string {
   if (deck.length === 0) {
     deck = [...ACTIVITIES];
   }
-  const index = Math.floor(Math.random() * deck.length);
+  const index = Math.floor(Math.random() * deck.length); // NOSONAR
   const activity = deck[index] ?? "";
   deck.splice(index, 1); // remove it so it doesn't repeat
   return activity;

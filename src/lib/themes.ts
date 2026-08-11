@@ -276,9 +276,9 @@ const DEFAULT_THEME = "nordic-frost";
 function hexToRgb(hex: string) {
   const c = hex.replace("#", "");
   return {
-    r: parseInt(c.substring(0, 2), 16) || 0,
-    g: parseInt(c.substring(2, 4), 16) || 0,
-    b: parseInt(c.substring(4, 6), 16) || 0,
+    r: Number.parseInt(c.substring(0, 2), 16) || 0,
+    g: Number.parseInt(c.substring(2, 4), 16) || 0,
+    b: Number.parseInt(c.substring(4, 6), 16) || 0,
   };
 }
 
@@ -379,7 +379,9 @@ export function applyTheme(themeId: string, customHex?: string, isDark?: boolean
       localStorage.setItem(STORAGE_KEY, "custom");
       localStorage.setItem(CUSTOM_HEX_KEY, customHex);
       localStorage.setItem("eigentime-custom-is-dark", isDark ? "true" : "false");
-    } catch {}
+    } catch {
+      // Ignored
+    }
     return;
   }
 

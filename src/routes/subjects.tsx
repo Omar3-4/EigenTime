@@ -152,7 +152,9 @@ function SubjectsBody() {
         />
 
         <div className="space-y-2">
-          <label htmlFor="field" className="text-xs font-medium text-muted-foreground">Fixed Color Presets</label>
+          <label htmlFor="field" className="text-xs font-medium text-muted-foreground">
+            Fixed Color Presets
+          </label>
           <div className="flex flex-wrap gap-2">
             {subjectPresetSwatches.map((swatch) => (
               <button

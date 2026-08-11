@@ -120,7 +120,10 @@ export function BlockGeneratorModal({
         <div className="space-y-6">
           {/* Total Time */}
           <div>
-            <label htmlFor="field" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 block">
+            <label
+              htmlFor="field"
+              className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 block"
+            >
               Available Time (Minutes)
             </label>
             <input
@@ -135,7 +138,10 @@ export function BlockGeneratorModal({
 
           {/* Slicing Style */}
           <div>
-            <label htmlFor="field" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 block">
+            <label
+              htmlFor="field"
+              className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 block"
+            >
               Pomodoro Slicing Style
             </label>
             <div className="grid grid-cols-2 gap-2">
@@ -168,7 +174,10 @@ export function BlockGeneratorModal({
 
           {/* Subjects */}
           <div>
-            <label htmlFor="field" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 block">
+            <label
+              htmlFor="field"
+              className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 block"
+            >
               Subjects & Relative Weights
             </label>
             <div className="space-y-2 mb-3">

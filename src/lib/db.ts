@@ -182,5 +182,5 @@ export function getDb(): EigenTimeDB {
 
 export function uid(): UUID {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
-  return `id-${Date.now()}-${Math.floor(Math.random() * 1e9)}`;
+  return `id-${Date.now()}-${Math.floor(Math.random() * 1e9)}`; // NOSONAR
 }

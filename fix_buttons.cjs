@@ -1,5 +1,5 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
 function walk(dir) {
   let results = [];
@@ -10,7 +10,12 @@ function walk(dir) {
     if (stat && stat.isDirectory()) {
       results = results.concat(walk(filePath));
     } else {
-      if (filePath.endsWith('.tsx') || filePath.endsWith('.ts') || filePath.endsWith('.jsx') || filePath.endsWith('.js')) {
+      if (
+        filePath.endsWith(".tsx") ||
+        filePath.endsWith(".ts") ||
+        filePath.endsWith(".jsx") ||
+        filePath.endsWith(".js")
+      ) {
         results.push(filePath);
       }
     }
@@ -18,12 +23,12 @@ function walk(dir) {
   return results;
 }
 
-const files = walk(path.join(__dirname, 'src'));
-files.forEach(file => {
-  let content = fs.readFileSync(file, 'utf8');
+const files = walk(path.join(__dirname, "src"));
+files.forEach((file) => {
+  let content = fs.readFileSync(file, "utf8");
   let newContent = content.replace(/<button(?![^>]*\btype=)/g, '<button type="button"');
   if (content !== newContent) {
-    fs.writeFileSync(file, newContent, 'utf8');
-    console.log('Fixed buttons in', file);
+    fs.writeFileSync(file, newContent, "utf8");
+    console.log("Fixed buttons in", file);
   }
 });

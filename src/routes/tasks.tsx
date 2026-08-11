@@ -1,11 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useLiveQuery } from "dexie-react-hooks";
-import { CheckCircle2, Circle, Plus, Trash2, Sparkles } from "lucide-react";
+import { CheckCircle2, Circle, Plus, Trash2 } from "lucide-react";
 import { useState, useMemo } from "react";
 import { AppShell } from "@/components/app-shell";
 import { DataGate } from "@/components/data-gate";
 import { useI18n } from "@/lib/i18n";
-import { predictTasksKNN } from "@/lib/analytics";
 import { createTask, deleteTask, listSubjects, listTasks, toggleTask } from "@/lib/repo";
 import { subjectColorVar, subjectSoftVar } from "@/lib/subject-colors";
 import { cn } from "@/lib/utils";
@@ -56,11 +55,6 @@ function TasksBody() {
 
   const open = (tasks ?? []).filter((x) => !x.done);
   const done = (tasks ?? []).filter((x) => x.done);
-
-  const suggestions = useMemo(() => {
-    if (!tasks) return [];
-    return predictTasksKNN(tasks, subjectId || null);
-  }, [tasks, subjectId]);
 
   return (
     <div className="space-y-4">

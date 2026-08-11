@@ -189,8 +189,12 @@ export function buildBiorhythm(sessions: Session[]): Biorhythm {
     share: total ? minutes / total : 0,
   }));
   const active = hours.filter((h) => h.minutes > 0);
-  const peak = active.length ? active.reduce((a, b) => (b.minutes > a.minutes ? b : a), active[0]!) : null;
-  const trough = active.length ? active.reduce((a, b) => (b.minutes < a.minutes ? b : a), active[0]!) : null;
+  const peak = active.length
+    ? active.reduce((a, b) => (b.minutes > a.minutes ? b : a), active.at(0)!)
+    : null;
+  const trough = active.length
+    ? active.reduce((a, b) => (b.minutes < a.minutes ? b : a), active.at(0)!)
+    : null;
 
   // periodicity = normalized concentration (inverse of entropy)
   let entropy = 0;
@@ -219,7 +223,7 @@ export function buildFlowDriver(sessions: Session[], subjects: Subject[]): FlowD
   }
   const mins = focus.map((s) => s.durationSec / 60).sort((a, b) => a - b);
   const median = mins[Math.floor(mins.length / 2)] ?? 0;
-  const longest = mins[mins.length - 1] ?? 0;
+  const longest = mins.at(-1) ?? 0;
 
   // deep sessions = above 75th percentile
   const p75 = mins[Math.floor(mins.length * 0.75)] ?? median;
@@ -388,7 +392,10 @@ export function predictNextTask(
   let bestScore = -1;
   let reason: NextTaskPrediction["reason"] = "queue";
 
-  function scoreTask(task: import("./db").Task): { score: number; why: NextTaskPrediction["reason"] } {
+  function scoreTask(task: import("./db").Task): {
+    score: number;
+    why: NextTaskPrediction["reason"];
+  } {
     let score = 1;
     let why: NextTaskPrediction["reason"] = "queue";
     if (task.dueDate === today) {
@@ -486,14 +493,7 @@ export function buildHabitHealthScore(sessions: Session[]): HabitHealth {
   if (trend === "improving") trendBonus = 10;
   else if (trend === "declining") trendBonus = -10;
 
-  const score = Math.min(
-    100,
-    Math.round(
-      streak * 2 +
-        longTermConsistency * 0.6 +
-        trendBonus,
-    ),
-  );
+  const score = Math.min(100, Math.round(streak * 2 + longTermConsistency * 0.6 + trendBonus));
 
   return { score: Math.max(0, score), trend, streakDays: streak, longTermConsistency };
 }

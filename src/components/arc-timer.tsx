@@ -70,7 +70,12 @@ const SIZE = 320;
 const R = 118;
 const CIRC = 2 * Math.PI * R;
 
-function getArcColor(isDeepFlow: boolean, phase: string, isPomodoro: boolean, activeSubject: Subject | null) {
+function getArcColor(
+  isDeepFlow: boolean,
+  phase: string,
+  isPomodoro: boolean,
+  activeSubject: Subject | null,
+) {
   if (isDeepFlow) return "#00f0ff";
   if (isPomodoro && phase === "break") return "#10b981";
   if (isPomodoro && phase === "completed") return "#a855f7";
@@ -102,7 +107,12 @@ function getPhaseIcon(phase: string) {
   return <Coffee className="size-3.5" />;
 }
 
-function getTimerMainLabel(isPomodoro: boolean, phase: string, isTakingBreak: boolean, tElapsed: string) {
+function getTimerMainLabel(
+  isPomodoro: boolean,
+  phase: string,
+  isTakingBreak: boolean,
+  tElapsed: string,
+) {
   if (isPomodoro) {
     if (phase === "focus") return "Focus Time";
     if (phase === "completed") return "Finished";
@@ -384,7 +394,8 @@ export function ArcTimer() {
     return (
       <div
         className="fixed inset-0 z-50 bg-background flex flex-col items-center justify-center group"
-        onClick={() => toggleZen(false)} onKeyDown={() => toggleZen(false)}
+        onClick={() => toggleZen(false)}
+        onKeyDown={() => toggleZen(false)}
       >
         <div
           className="fixed top-0 start-0 h-[2px] transition-all bg-focus"
@@ -432,7 +443,6 @@ export function ArcTimer() {
           </button>
         </div>
 
-
         {isPomodoro && (
           <div className="flex items-center gap-2">
             <span
@@ -459,7 +469,6 @@ export function ArcTimer() {
             ratio={ratio}
             isDeepFlow={isDeepFlow}
           />
-
 
           <div
             className="absolute inset-0 flex flex-col items-center justify-center gap-1"
@@ -678,7 +687,6 @@ export function ArcTimer() {
             </div>
           </div>
         )}
-
 
         {isPomodoro && (
           <div className="flex items-center gap-2 mt-2">

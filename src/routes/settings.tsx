@@ -1,20 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { useLiveQuery } from "dexie-react-hooks";
-import {
-  Bell,
-  BrainCircuit,
-  Clock,
-  Download,
-  Globe,
-  Palette,
-  Sliders,
-  Sparkles,
-  Trash2,
-  Upload,
-  Volume2,
-  BellRing,
-} from "lucide-react";
+import { Download, Trash2, Upload, Volume2, BellRing } from "lucide-react";
 import { useRef, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { DataGate } from "@/components/data-gate";
@@ -188,7 +175,7 @@ function SettingsSuite() {
       await importAll(json);
       toast.success("Backup Restored", { description: "Application reloaded with imported data." });
       setTimeout(() => window.location.reload(), 1000);
-    } catch (e) {
+    } catch {
       toast.error("Decryption Failed", { description: "Invalid password or corrupted backup." });
     }
   };
