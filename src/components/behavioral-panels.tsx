@@ -108,7 +108,7 @@ export function FlowDriverPanel({ data }: { data: FlowDriver }) {
       <p className="text-xs text-muted-foreground">
         {data.driver === "none"
           ? t("needMoreData")
-          : `${t(`driver_${data.driver}`)} · ${data.detail}`}
+          : t("driver_" + data.driver) + " · " + data.detail}
       </p>
       <p className="text-xs text-muted-foreground">
         {t("medianSession")}: <span className="tabular font-semibold">{data.medianMinutes}m</span> ·{" "}
@@ -137,7 +137,7 @@ export function StabilityPanel({ data }: { data: Stability }) {
 
 export function FatiguePanel({ data }: { data: FatigueWarning }) {
   const { t } = useI18n();
-  const tone = data.level === "high" ? "productivity" : data.level === "moderate" ? "goal" : "goal";
+  const tone = data.level === "high" ? "productivity" : "goal";
   return (
     <Panel tone={tone} title={t("fatigue")} tooltip={t("fatigueDesc")}>
       <p className="tabular font-display text-3xl font-semibold">{data.risk}%</p>
@@ -176,8 +176,12 @@ export function NextTaskPanel({ data }: { data: NextTaskPrediction }) {
 
 export function HabitHealthPanel({ data }: { data: HabitHealth }) {
   const { t } = useI18n();
-  const tone =
-    data.trend === "declining" ? "goal" : data.trend === "improving" ? "focus" : "elapsed";
+  let tone = "elapsed";
+  if (data.trend === "declining") {
+    tone = "goal";
+  } else if (data.trend === "improving") {
+    tone = "focus";
+  }
   return (
     <Panel tone={tone} title={t("habitHealth") ?? "Habit"} tooltip={t("habitHealthDesc")}>
       <p className="tabular font-display text-3xl font-semibold">{data.score}</p>
@@ -240,7 +244,7 @@ export function LifestyleCorrelationPanel({ data }: { data: LifestyleCorrelation
       ) : (
         <div className="space-y-3">
           {data.slice(0, 2).map((corr, idx) => (
-            <div key={idx}>
+            <div key={`idx-${idx}`}>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-semibold">{corr.factor}</span>
                 <span className="tabular text-xs font-semibold text-muted-foreground">

@@ -323,7 +323,7 @@ function SettingsSuite() {
             </h2>
           </div>
           <div className="grid gap-4 sm:grid-cols-3">
-            <label className="space-y-1.5">
+            <label htmlFor="field" className="space-y-1.5">
               <span className="text-xs font-medium text-muted-foreground">
                 {t("focusDuration")}
               </span>
@@ -340,7 +340,7 @@ function SettingsSuite() {
               </select>
             </label>
 
-            <label className="space-y-1.5">
+            <label htmlFor="field" className="space-y-1.5">
               <span className="text-xs font-medium text-muted-foreground">{t("shortBreak")}</span>
               <select
                 value={shortBreak}
@@ -353,7 +353,7 @@ function SettingsSuite() {
               </select>
             </label>
 
-            <label className="space-y-1.5">
+            <label htmlFor="field" className="space-y-1.5">
               <span className="text-xs font-medium text-muted-foreground">{t("longBreak")}</span>
               <select
                 value={longBreak}
@@ -386,7 +386,7 @@ function SettingsSuite() {
             </h2>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            <label className="space-y-1.5">
+            <label htmlFor="field" className="space-y-1.5">
               <span className="text-xs font-medium text-muted-foreground">
                 {t("fatigueSensitivity")}
               </span>
@@ -401,7 +401,7 @@ function SettingsSuite() {
               </select>
             </label>
 
-            <label className="space-y-1.5">
+            <label htmlFor="field" className="space-y-1.5">
               <span className="text-xs font-medium text-muted-foreground">
                 {t("deepFlowThreshold")}
               </span>
@@ -433,6 +433,7 @@ function SettingsSuite() {
                 <p className="text-xs text-muted-foreground flex items-center gap-2">
                   {t("desktopNotifSub")}
                   <button
+                    type="button"
                     onClick={() => requestNotificationPermission()}
                     className="text-orange-500 hover:underline flex items-center gap-1 text-[10px]"
                   >
@@ -574,7 +575,7 @@ function SettingsSuite() {
                   <span className="text-sm text-foreground">{label}</span>
                   <div className="flex items-center gap-1">
                     {combo.map((key, i) => (
-                      <span key={i}>
+                      <span key={`idx-${i}`}>
                         <kbd className="rounded border border-border bg-secondary px-1.5 py-0.5 font-mono text-[11px] font-semibold shadow-sm">
                           {key}
                         </kbd>

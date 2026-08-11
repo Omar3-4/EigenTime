@@ -189,8 +189,8 @@ export function buildBiorhythm(sessions: Session[]): Biorhythm {
     share: total ? minutes / total : 0,
   }));
   const active = hours.filter((h) => h.minutes > 0);
-  const peak = active.length ? active.reduce((a, b) => (b.minutes > a.minutes ? b : a)) : null;
-  const trough = active.length ? active.reduce((a, b) => (b.minutes < a.minutes ? b : a)) : null;
+  const peak = active.length ? active.reduce((a, b) => (b.minutes > a.minutes ? b : a), active[0]!) : null;
+  const trough = active.length ? active.reduce((a, b) => (b.minutes < a.minutes ? b : a), active[0]!) : null;
 
   // periodicity = normalized concentration (inverse of entropy)
   let entropy = 0;
@@ -333,9 +333,13 @@ export function buildFatigue(sessions: Session[]): FatigueWarning {
     100,
     Math.round((todaySec / 3600 / 6) * 45 + (last3 / 18) * 30 + (decline / 100) * 25),
   );
+  let level: "low" | "moderate" | "high" = "low";
+  if (risk >= 66) level = "high";
+  else if (risk >= 33) level = "moderate";
+
   return {
     risk,
-    level: risk >= 66 ? "high" : risk >= 33 ? "moderate" : "low",
+    level,
     todayHours: Math.round((todaySec / 3600) * 10) / 10,
     last3DayHours: Math.round(last3 * 10) / 10,
     decline,
@@ -384,7 +388,7 @@ export function predictNextTask(
   let bestScore = -1;
   let reason: NextTaskPrediction["reason"] = "queue";
 
-  for (const task of open) {
+  function scoreTask(task: import("./db").Task): { score: number; why: NextTaskPrediction["reason"] } {
     let score = 1;
     let why: NextTaskPrediction["reason"] = "queue";
     if (task.dueDate === today) {
@@ -404,6 +408,11 @@ export function predictNextTask(
       }
     }
     score -= task.order * 0.05;
+    return { score, why };
+  }
+
+  for (const task of open) {
+    const { score, why } = scoreTask(task);
     if (score > bestScore) {
       bestScore = score;
       best = task;
@@ -473,12 +482,16 @@ export function buildHabitHealthScore(sessions: Session[]): HabitHealth {
   if (recent14 > prev14 * 1.1) trend = "improving";
   if (recent14 < prev14 * 0.9) trend = "declining";
 
+  let trendBonus = 0;
+  if (trend === "improving") trendBonus = 10;
+  else if (trend === "declining") trendBonus = -10;
+
   const score = Math.min(
     100,
     Math.round(
       streak * 2 +
         longTermConsistency * 0.6 +
-        (trend === "improving" ? 10 : trend === "declining" ? -10 : 0),
+        trendBonus,
     ),
   );
 
@@ -698,10 +711,14 @@ export function forecastNextDays(sessions: Session[], daysToPredict = 3): Foreca
     futureDate.setDate(futureDate.getDate() + i);
     let pred = slope * (historyDays + i) + intercept;
     if (pred < 0) pred = 0;
+    let trendDir: "up" | "down" | "flat" = "flat";
+    if (slope > 100) trendDir = "up";
+    else if (slope < -100) trendDir = "down";
+
     results.push({
       day: dayKey(futureDate),
       predictedSec: Math.round(pred),
-      trend: slope > 100 ? "up" : slope < -100 ? "down" : "flat",
+      trend: trendDir,
     });
   }
   return results;

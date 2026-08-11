@@ -106,16 +106,8 @@ export async function saveSession(input: {
     // FEI = MAX(0, 100 - (Pause Count × 2) - ((Pause Duration Sec / Target Sec) × 100))
     fei = Math.max(0, 100 - pauseCount * 2 - (pauseDur / target) * 100);
 
-    const diffMult =
-      input.difficulty === 1
-        ? 1.0
-        : input.difficulty === 2
-          ? 1.2
-          : input.difficulty === 3
-            ? 1.5
-            : input.difficulty === 4
-              ? 2.0
-              : 2.5;
+    const diffMultMap: Record<number, number> = { 1: 1.0, 2: 1.2, 3: 1.5, 4: 2.0, 5: 2.5 };
+    const diffMult = diffMultMap[input.difficulty] ?? 1.5;
 
     const durMins = input.durationSec / 60;
     xp = durMins * 10 * diffMult * (fei / 100);

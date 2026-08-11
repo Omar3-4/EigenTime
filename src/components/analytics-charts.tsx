@@ -61,7 +61,7 @@ export function PerformanceWaveChart({
           const heightPct = Math.round((d.hours / maxHours) * 100);
           return (
             <div
-              key={i}
+              key={d.label}
               className="group relative flex flex-1 flex-col items-center justify-end h-full"
             >
               <div

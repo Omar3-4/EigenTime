@@ -152,7 +152,7 @@ function SubjectsBody() {
         />
 
         <div className="space-y-2">
-          <label className="text-xs font-medium text-muted-foreground">Fixed Color Presets</label>
+          <label htmlFor="field" className="text-xs font-medium text-muted-foreground">Fixed Color Presets</label>
           <div className="flex flex-wrap gap-2">
             {subjectPresetSwatches.map((swatch) => (
               <button
@@ -207,7 +207,7 @@ function SubjectsBody() {
           )}
         </div>
 
-        <label className="block space-y-1">
+        <label htmlFor="field" className="block space-y-1">
           <span className="text-xs font-medium text-muted-foreground">{t("weeklyTarget")}</span>
           <input
             type="number"

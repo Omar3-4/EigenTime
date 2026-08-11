@@ -8,28 +8,37 @@ import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useTimerTick } from "./timer-tick-provider";
 
+function getTimerLabel(isPomodoro: boolean, phase: "focus" | "break" | "completed") {
+  if (!isPomodoro) return "Stopwatch";
+  if (phase === "focus") return "Focus";
+  if (phase === "break") return "Break";
+  return "Done";
+}
+
+function TimerIcon({ running, isBreak }: { running: boolean; isBreak: boolean }) {
+  if (!running) return <Play className="size-3 ps-0.5" />;
+  if (isBreak) return <Coffee className="size-3" />;
+  return <Brain className="size-3" />;
+}
+
 export function MiniTimerWidget() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const snapRow = useLiveQuery(() => getDb().timerSnapshots.get("current"), [], null);
   const snap = snapRow?.snapshot;
 
   const { now } = useTimerTick();
-  const elapsed = snap
-    ? snap.accumulatedSec + (isRunning(snap) ? (now - snap.runningSince!) / 1000 : 0)
-    : 0;
-
-  // Hide if on timer page or if timer is completely empty/stopped
+  
   if (pathname === "/timer" || !snap) return null;
 
   const running = isRunning(snap);
-  // Hide if not running and no accumulated time
   if (!running && snap.accumulatedSec === 0) return null;
 
   const isPomodoro = snap.mode === "pomodoro";
   const phase = snap.pomoPhase ?? "focus";
   const displaySec = isPomodoro ? remainingSeconds(snap, now) : elapsedSeconds(snap, now);
 
-  const activeColor = isPomodoro && phase === "break" ? "#10b981" : "var(--focus)";
+  const isBreak = isPomodoro && phase === "break";
+  const activeColor = isBreak ? "#10b981" : "var(--focus)";
   const isDeepFlow = running && elapsedSeconds(snap, now) > 20 * 60 && phase === "focus";
 
   return (
@@ -48,17 +57,11 @@ export function MiniTimerWidget() {
           )}
           style={{ background: isDeepFlow ? "#00f0ff" : activeColor }}
         >
-          {!running ? (
-            <Play className="size-3 ps-0.5" />
-          ) : isPomodoro && phase === "break" ? (
-            <Coffee className="size-3" />
-          ) : (
-            <Brain className="size-3" />
-          )}
+          <TimerIcon running={running} isBreak={isBreak} />
         </div>
         <div className="flex flex-col min-w-[60px]">
           <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground leading-none">
-            {isPomodoro ? (phase === "focus" ? "Focus" : "Break") : "Stopwatch"}
+            {getTimerLabel(isPomodoro, phase)}
           </span>
           <span className="tabular font-mono text-sm font-semibold leading-none mt-0.5">
             {formatHMS(Math.round(displaySec))}

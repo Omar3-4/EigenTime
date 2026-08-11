@@ -70,6 +70,59 @@ const SIZE = 320;
 const R = 118;
 const CIRC = 2 * Math.PI * R;
 
+function getArcColor(isDeepFlow: boolean, phase: string, isPomodoro: boolean, activeSubject: Subject | null) {
+  if (isDeepFlow) return "#00f0ff";
+  if (isPomodoro && phase === "break") return "#10b981";
+  if (isPomodoro && phase === "completed") return "#a855f7";
+  if (activeSubject) return subjectColorVar[activeSubject.color] ?? "var(--focus)";
+  return "var(--focus)";
+}
+
+function getPhaseBackground(phase: string) {
+  if (phase === "focus") return "var(--focus-soft)";
+  if (phase === "completed") return "var(--elapsed-soft)";
+  return "oklch(0.95 0.05 160)";
+}
+
+function getPhaseColor(phase: string) {
+  if (phase === "focus") return "var(--focus-foreground)";
+  if (phase === "completed") return "var(--elapsed-foreground)";
+  return "oklch(0.35 0.12 160)";
+}
+
+function getPhaseLabel(phase: string) {
+  if (phase === "focus") return "Focus";
+  if (phase === "completed") return "Done";
+  return "Break";
+}
+
+function getPhaseIcon(phase: string) {
+  if (phase === "focus") return <Brain className="size-3.5" />;
+  if (phase === "completed") return <AlarmCheck className="size-3.5" />;
+  return <Coffee className="size-3.5" />;
+}
+
+function getTimerMainLabel(isPomodoro: boolean, phase: string, isTakingBreak: boolean, tElapsed: string) {
+  if (isPomodoro) {
+    if (phase === "focus") return "Focus Time";
+    if (phase === "completed") return "Finished";
+    return "Break Time";
+  }
+  if (isTakingBreak) return "On Break";
+  return tElapsed;
+}
+
+function getDotStyle(i: number, round: number, phase: string, arcColor: string) {
+  if (i < round - 1) {
+    return { background: arcColor, opacity: 0.8, boxShadow: "none" };
+  }
+  if (i === round - 1) {
+    const bg = phase === "focus" ? arcColor : "#10b981";
+    return { background: bg, opacity: 1, boxShadow: `0 0 8px ${arcColor}88` };
+  }
+  return { background: "var(--border)", opacity: 0.35, boxShadow: "none" };
+}
+
 export function ArcTimer() {
   const { t } = useI18n();
   const subjects = useLiveQuery(() => listSubjects(), [], [] as Subject[]);
@@ -176,7 +229,7 @@ export function ArcTimer() {
     autoTunePomodoro,
   } = usePomodoroEngine(snap, commit, sessions ?? []);
 
-  const { setWarnedFatigue } = useTimerNotifications(
+  const { setWarnedFatigue } = useTimerNotifications({
     snap,
     commit,
     now,
@@ -185,7 +238,7 @@ export function ArcTimer() {
     goalHours,
     elapsed,
     running,
-  );
+  });
 
   const globalShortcutsEnabled =
     useLiveQuery(() => getSetting("globalShortcutsEnabled", true, z.boolean()), [], true) ?? true;
@@ -247,6 +300,13 @@ export function ArcTimer() {
     const total = Math.round(totalFocusSec(snap, now));
     if (total < 1) return;
     const startedAt = snap.overallStartedAt ?? Date.now() - total * 1000;
+    let targetSecObj = {};
+    if (snap.mode === "pomodoro" && snap.pomoFocusSec !== undefined) {
+      targetSecObj = { targetSec: snap.pomoFocusSec };
+    } else if (snap.targetSec !== undefined) {
+      targetSecObj = { targetSec: snap.targetSec };
+    }
+
     const sessionInput = {
       subjectId: snap.subjectId,
       startedAt,
@@ -254,11 +314,7 @@ export function ArcTimer() {
       durationSec: total,
       mode: "focus" as const,
       difficulty: snap.difficulty,
-      ...(snap.mode === "pomodoro" && snap.pomoFocusSec !== undefined
-        ? { targetSec: snap.pomoFocusSec }
-        : snap.targetSec !== undefined
-          ? { targetSec: snap.targetSec }
-          : {}),
+      ...targetSecObj,
       ...(snap.pauseCount !== undefined ? { pauseCount: snap.pauseCount } : {}),
       ...(snap.pauseDurationSec !== undefined ? { pauseDurationSec: snap.pauseDurationSec } : {}),
       ...(snap.scratchpadNotes ? { scratchpadNotes: snap.scratchpadNotes } : {}),
@@ -307,15 +363,7 @@ export function ArcTimer() {
     [subjects, snap.subjectId],
   );
 
-  const arcColor = isDeepFlow
-    ? "#00f0ff"
-    : phase === "break" && isPomodoro
-      ? "#10b981"
-      : phase === "completed" && isPomodoro
-        ? "#a855f7"
-        : activeSubject
-          ? (subjectColorVar[activeSubject.color] ?? "var(--focus)")
-          : "var(--focus)";
+  const arcColor = getArcColor(isDeepFlow, phase, isPomodoro, activeSubject);
 
   const todaySec = stat?.totalSec ?? 0;
   const goalSec = goalHours * 3600;
@@ -336,7 +384,7 @@ export function ArcTimer() {
     return (
       <div
         className="fixed inset-0 z-50 bg-background flex flex-col items-center justify-center group"
-        onClick={() => toggleZen(false)}
+        onClick={() => toggleZen(false)} onKeyDown={() => toggleZen(false)}
       >
         <div
           className="fixed top-0 start-0 h-[2px] transition-all bg-focus"
@@ -367,6 +415,7 @@ export function ArcTimer() {
         <div className="absolute top-6 end-6 flex items-center gap-2">
           {isZen && (
             <button
+              type="button"
               onClick={() => setZenEdge(true)}
               className="px-3 py-1.5 rounded-xl text-xs font-bold uppercase bg-secondary text-muted-foreground hover:text-foreground transition-all"
             >
@@ -374,6 +423,7 @@ export function ArcTimer() {
             </button>
           )}
           <button
+            type="button"
             onClick={() => toggleZen(false)}
             className="p-2 rounded-xl text-muted-foreground hover:bg-secondary transition-all"
             title="Zen Mode (Fullscreen)"
@@ -382,33 +432,18 @@ export function ArcTimer() {
           </button>
         </div>
 
+
         {isPomodoro && (
           <div className="flex items-center gap-2">
             <span
               className="flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-widest"
               style={{
-                background:
-                  phase === "focus"
-                    ? "var(--focus-soft)"
-                    : phase === "completed"
-                      ? "var(--elapsed-soft)"
-                      : "oklch(0.95 0.05 160)",
-                color:
-                  phase === "focus"
-                    ? "var(--focus-foreground)"
-                    : phase === "completed"
-                      ? "var(--elapsed-foreground)"
-                      : "oklch(0.35 0.12 160)",
+                background: getPhaseBackground(phase),
+                color: getPhaseColor(phase),
               }}
             >
-              {phase === "focus" ? (
-                <Brain className="size-3.5" />
-              ) : phase === "completed" ? (
-                <AlarmCheck className="size-3.5" />
-              ) : (
-                <Coffee className="size-3.5" />
-              )}
-              {phase === "focus" ? "Focus" : phase === "completed" ? "Done" : "Break"}
+              {getPhaseIcon(phase)}
+              {getPhaseLabel(phase)}
             </span>
             <span className="text-xs text-muted-foreground">
               Round {round} / {totalRounds}
@@ -425,20 +460,13 @@ export function ArcTimer() {
             isDeepFlow={isDeepFlow}
           />
 
+
           <div
             className="absolute inset-0 flex flex-col items-center justify-center gap-1"
             style={{ padding: "60px" }}
           >
             <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              {isPomodoro
-                ? phase === "focus"
-                  ? "Focus Time"
-                  : phase === "completed"
-                    ? "Finished"
-                    : "Break Time"
-                : isTakingBreak
-                  ? "On Break"
-                  : t("elapsed")}
+              {getTimerMainLabel(isPomodoro, phase, isTakingBreak, t("elapsed"))}
             </span>
             <span className="tabular font-mono text-4xl font-semibold leading-none">
               {formatHMS(Math.round(displaySec))}
@@ -509,6 +537,7 @@ export function ArcTimer() {
         <div className="flex flex-wrap items-center justify-center gap-2">
           {running ? (
             <button
+              type="button"
               onClick={() => {
                 setIsTakingBreak(false);
                 act("pause");
@@ -520,6 +549,7 @@ export function ArcTimer() {
             </button>
           ) : (
             <button
+              type="button"
               onClick={async () => {
                 setIsTakingBreak(false);
 
@@ -574,6 +604,7 @@ export function ArcTimer() {
           {/* Long Session Break Button (only in stopwatch mode and not pomodoro break) */}
           {running && !isPomodoro && (
             <button
+              type="button"
               onClick={() => {
                 setIsTakingBreak(true);
                 act("pause");
@@ -617,7 +648,7 @@ export function ArcTimer() {
             <div className="space-y-2 mb-3 max-h-32 overflow-y-auto">
               {(snap.scratchpadNotes ?? []).map((note, i) => (
                 <div
-                  key={i}
+                  key={`idx-${i}`}
                   className="text-sm px-3 py-2 bg-secondary/50 rounded-lg text-foreground break-words border-l-2 border-[var(--focus)]"
                 >
                   {note}
@@ -638,6 +669,7 @@ export function ArcTimer() {
                 onKeyDown={(e) => e.key === "Enter" && saveScratch()}
               />
               <button
+                type="button"
                 onClick={saveScratch}
                 className="px-3 py-2 bg-[var(--focus-soft)] text-[var(--focus-foreground)] rounded-lg text-xs font-bold"
               >
@@ -647,24 +679,14 @@ export function ArcTimer() {
           </div>
         )}
 
+
         {isPomodoro && (
           <div className="flex items-center gap-2 mt-2">
             {Array.from({ length: totalRounds }, (_, i) => (
               <span
-                key={i}
+                key={`idx-${i}`}
                 className="size-2.5 rounded-full transition-colors"
-                style={{
-                  background:
-                    i < round - 1
-                      ? arcColor
-                      : i === round - 1
-                        ? phase === "focus"
-                          ? arcColor
-                          : "#10b981"
-                        : "var(--border)",
-                  opacity: i < round - 1 ? 0.8 : i === round - 1 ? 1 : 0.35,
-                  boxShadow: i === round - 1 ? `0 0 8px ${arcColor}88` : "none",
-                }}
+                style={getDotStyle(i, round, phase, arcColor)}
               />
             ))}
           </div>

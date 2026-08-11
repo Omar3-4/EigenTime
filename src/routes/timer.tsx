@@ -112,6 +112,11 @@ function QuickMetricsOverview() {
       color: "goal",
       renderExtra: () => {
         const max = Math.max(...forecast.map((f) => f.predictedSec), 3600);
+        function getTrendColor(trend: string) {
+          if (trend === "up") return "var(--goal)";
+          if (trend === "down") return "var(--destructive)";
+          return "var(--focus)";
+        }
         return (
           <div
             className="flex items-end gap-1 h-8 ms-auto opacity-80"
@@ -123,12 +128,7 @@ function QuickMetricsOverview() {
                 className="w-2 rounded-full transition-all"
                 style={{
                   height: `${Math.max(15, (f.predictedSec / max) * 100)}%`,
-                  background:
-                    f.trend === "up"
-                      ? "var(--goal)"
-                      : f.trend === "down"
-                        ? "var(--destructive)"
-                        : "var(--focus)",
+                  background: getTrendColor(f.trend),
                 }}
                 title={`${f.day}: ${formatHoursShort(f.predictedSec)}`}
               />

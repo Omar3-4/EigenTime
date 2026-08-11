@@ -57,6 +57,7 @@ function EyeRest() {
       </div>
 
       <button
+        type="button"
         onClick={() => invoke("close_eye_rest")}
         className="mt-16 text-white/40 hover:text-white/80 transition-colors"
       >

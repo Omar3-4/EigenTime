@@ -93,6 +93,97 @@ export function totalFocusSec(snap: TimerSnapshot, now = Date.now()): number {
 
 // ─── State machine reducer ─────────────────────────────────────────────────────
 
+function handleStart(snap: TimerSnapshot, now: number): TimerSnapshot {
+  if (snap.runningSince) return snap;
+
+  let newPauseDuration = snap.pauseDurationSec ?? 0;
+  if (snap.pausedAt) {
+    newPauseDuration += (now - snap.pausedAt) / 1000;
+  }
+
+  if (snap.mode === "pomodoro" && snap.pomoPhase === "completed") {
+    return {
+      ...snap,
+      pomoPhase: "focus",
+      pomoCurrentRound: 1,
+      accumulatedSec: 0,
+      runningSince: now,
+      overallStartedAt: snap.overallStartedAt ?? now,
+      pausedAt: null,
+      pauseDurationSec: newPauseDuration,
+    };
+  }
+  return {
+    ...snap,
+    runningSince: now,
+    overallStartedAt: snap.overallStartedAt ?? now,
+    pausedAt: null,
+    pauseDurationSec: newPauseDuration,
+  };
+}
+
+function handlePause(snap: TimerSnapshot, now: number): TimerSnapshot {
+  if (!snap.runningSince) return snap;
+  return {
+    ...snap,
+    accumulatedSec: elapsedSeconds(snap, now),
+    runningSince: null,
+    pauseCount: (snap.pauseCount ?? 0) + 1,
+    pausedAt: now,
+  };
+}
+
+function handleFinishPhase(snap: TimerSnapshot, now: number): TimerSnapshot {
+  if (snap.mode !== "pomodoro") return snap;
+  const elapsed = elapsedSeconds(snap, now);
+  const wasFocus = snap.pomoPhase === "focus";
+  const focusSoFar = (snap.pomoAccumulatedFocusSec ?? 0) + (wasFocus ? elapsed : 0);
+  const nextRound = wasFocus ? snap.pomoCurrentRound! : (snap.pomoCurrentRound ?? 1) + 1;
+  const isLastRound = nextRound > (snap.pomoRounds ?? DEFAULT_POMO_ROUNDS);
+
+  if (isLastRound) {
+    return {
+      ...snap,
+      pomoPhase: "completed",
+      pomoCurrentRound: snap.pomoRounds ?? DEFAULT_POMO_ROUNDS,
+      pomoAccumulatedFocusSec: focusSoFar,
+      accumulatedSec: 0,
+      runningSince: null,
+    };
+  }
+  return {
+    ...snap,
+    pomoPhase: wasFocus ? "break" : "focus",
+    pomoCurrentRound: nextRound,
+    pomoAccumulatedFocusSec: focusSoFar,
+    accumulatedSec: 0,
+    runningSince: now,
+  };
+}
+
+function handleSkip(snap: TimerSnapshot, now: number): TimerSnapshot {
+  if (snap.mode === "pomodoro") {
+    return handleFinishPhase(snap, now);
+  }
+  return { ...snap, accumulatedSec: snap.targetSec, runningSince: null };
+}
+
+function handleReset(snap: TimerSnapshot): TimerSnapshot {
+  return {
+    ...snap,
+    accumulatedSec: 0,
+    runningSince: null,
+    overallStartedAt: null,
+    pomoPhase: "focus",
+    pomoCurrentRound: 1,
+    pomoAccumulatedFocusSec: 0,
+    pauseCount: 0,
+    pauseDurationSec: 0,
+    pausedAt: null,
+    scratchpadNotes: [],
+  };
+}
+
 export function reduceTimer(
   snap: TimerSnapshot,
   action: TimerAction,
@@ -100,95 +191,16 @@ export function reduceTimer(
 ): TimerSnapshot {
   switch (action) {
     case "start":
-    case "resume": {
-      if (snap.runningSince) return snap;
-
-      let newPauseDuration = snap.pauseDurationSec ?? 0;
-      if (snap.pausedAt) {
-        newPauseDuration += (now - snap.pausedAt) / 1000;
-      }
-
-      if (snap.mode === "pomodoro" && snap.pomoPhase === "completed") {
-        return {
-          ...snap,
-          pomoPhase: "focus",
-          pomoCurrentRound: 1,
-          accumulatedSec: 0,
-          runningSince: now,
-          overallStartedAt: snap.overallStartedAt ?? now,
-          pausedAt: null,
-          pauseDurationSec: newPauseDuration,
-        };
-      }
-      return {
-        ...snap,
-        runningSince: now,
-        // overallStartedAt is set only once — on the very first start
-        overallStartedAt: snap.overallStartedAt ?? now,
-        pausedAt: null,
-        pauseDurationSec: newPauseDuration,
-      };
-    }
-
+    case "resume":
+      return handleStart(snap, now);
     case "pause":
-      if (!snap.runningSince) return snap;
-      return {
-        ...snap,
-        accumulatedSec: elapsedSeconds(snap, now),
-        runningSince: null,
-        pauseCount: (snap.pauseCount ?? 0) + 1,
-        pausedAt: now,
-      };
-
-    case "finish_phase": {
-      // Advance pomodoro to the next phase
-      if (snap.mode !== "pomodoro") return snap;
-      const elapsed = elapsedSeconds(snap, now);
-      const wasFocus = snap.pomoPhase === "focus";
-      const focusSoFar = (snap.pomoAccumulatedFocusSec ?? 0) + (wasFocus ? elapsed : 0);
-      const nextRound = wasFocus ? snap.pomoCurrentRound! : (snap.pomoCurrentRound ?? 1) + 1;
-      const isLastRound = nextRound > (snap.pomoRounds ?? DEFAULT_POMO_ROUNDS);
-      if (isLastRound) {
-        return {
-          ...snap,
-          pomoPhase: "completed",
-          pomoCurrentRound: snap.pomoRounds ?? DEFAULT_POMO_ROUNDS,
-          pomoAccumulatedFocusSec: focusSoFar,
-          accumulatedSec: 0,
-          runningSince: null, // stop the timer
-        };
-      }
-      return {
-        ...snap,
-        pomoPhase: wasFocus ? "break" : "focus",
-        pomoCurrentRound: nextRound,
-        pomoAccumulatedFocusSec: focusSoFar,
-        accumulatedSec: 0,
-        runningSince: now, // auto-start next phase
-      };
-    }
-
+      return handlePause(snap, now);
+    case "finish_phase":
+      return handleFinishPhase(snap, now);
     case "skip":
-      if (snap.mode === "pomodoro") {
-        return reduceTimer(snap, "finish_phase", now);
-      }
-      return { ...snap, accumulatedSec: snap.targetSec, runningSince: null };
-
+      return handleSkip(snap, now);
     case "reset":
-      return {
-        ...snap,
-        accumulatedSec: 0,
-        runningSince: null,
-        overallStartedAt: null,
-        pomoPhase: "focus",
-        pomoCurrentRound: 1,
-        pomoAccumulatedFocusSec: 0,
-        pauseCount: 0,
-        pauseDurationSec: 0,
-        pausedAt: null,
-        scratchpadNotes: [],
-      };
-
+      return handleReset(snap);
     default:
       return snap;
   }

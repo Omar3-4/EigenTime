@@ -1,23 +1,32 @@
 import { useEffect, useRef, useMemo, useState } from "react";
-import { TimerSnapshot } from "@/lib/db";
+import type { Session, TimerSnapshot, DailyStat } from "@/lib/db";
 import { isRunning, remainingSeconds, reduceTimer, elapsedSeconds } from "@/lib/timer-engine";
 import { notifyPhaseComplete, notifyDailyGoalAchieved } from "@/lib/tauri";
 import { playChime } from "@/lib/audio";
 import { buildFatigue } from "@/lib/analytics";
 import { toast } from "sonner";
 
-export function useTimerNotifications(
-  snap: TimerSnapshot,
-  commit: (s: TimerSnapshot) => void,
-  now: number,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  sessions: any[] | undefined,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  stat: any | null,
-  goalHours: number,
-  elapsed: number,
-  running: boolean,
-) {
+export interface TimerNotificationOptions {
+  snap: TimerSnapshot;
+  commit: (s: TimerSnapshot) => void;
+  now: number;
+  sessions: Session[] | undefined;
+  stat: DailyStat | null;
+  goalHours: number;
+  elapsed: number;
+  running: boolean;
+}
+
+export function useTimerNotifications({
+  snap,
+  commit,
+  now,
+  sessions,
+  stat,
+  goalHours,
+  elapsed,
+  running,
+}: TimerNotificationOptions) {
   const breakWarnedRef = useRef(false);
   const [warnedFatigue, setWarnedFatigue] = useState(false);
   const goalAchievedDayRef = useRef<string | null>(null);

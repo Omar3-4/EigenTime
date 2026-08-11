@@ -78,6 +78,7 @@ export function ActivityHeatmap({
           {isLoaded && (
             <>
               <button
+                type="button"
                 onClick={() => setIs3D(!is3D)}
                 title="Toggle 3D Heatmap"
                 className={cn(
@@ -107,6 +108,7 @@ export function ActivityHeatmap({
             history.
           </p>
           <button
+            type="button"
             onClick={() => setIsLoaded(true)}
             className="flex items-center gap-2 bg-focus text-focus-foreground px-4 py-2 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity"
           >

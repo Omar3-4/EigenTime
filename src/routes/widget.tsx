@@ -25,9 +25,12 @@ function Widget() {
   };
 
   const isRunning = snap?.runningSince != null;
-  const elapsed = snap
-    ? snap.accumulatedSec + (isRunning ? (Date.now() - snap.runningSince!) / 1000 : 0)
-    : 0;
+  let elapsed = 0;
+  if (snap) {
+    let live = 0;
+    if (isRunning) live = (Date.now() - snap.runningSince!) / 1000;
+    elapsed = snap.accumulatedSec + live;
+  }
 
   const min = Math.floor(elapsed / 60);
   const sec = Math.floor(elapsed % 60);
@@ -45,6 +48,7 @@ function Widget() {
       </div>
       <div className="flex items-center gap-2">
         <button
+          type="button"
           onClick={() => sendAction("toggle-play")}
           className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors"
         >
@@ -55,6 +59,7 @@ function Widget() {
           )}
         </button>
         <button
+          type="button"
           onClick={() => invoke("close_widget")}
           className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-red-500/80 transition-colors text-white/70 hover:text-white"
         >

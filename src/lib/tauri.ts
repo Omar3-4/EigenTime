@@ -1,9 +1,9 @@
 import { isTauri } from "@tauri-apps/api/core";
 import { sendNotification } from "@tauri-apps/plugin-notification";
 import { playChime } from "./audio";
-import { register, unregisterAll } from "@tauri-apps/plugin-global-shortcut";
+import { register } from "@tauri-apps/plugin-global-shortcut";
 
-export { register, unregisterAll };
+export { unregisterAll, register } from "@tauri-apps/plugin-global-shortcut";
 
 export function checkIsTauri() {
   return isTauri();
@@ -16,10 +16,8 @@ export async function notify(title: string, body: string) {
     } catch (err) {
       console.warn("Native notification failed:", err);
     }
-  } else {
-    if ("Notification" in window && Notification.permission === "granted") {
-      new Notification(title, { body });
-    }
+  } else if ("Notification" in window && Notification.permission === "granted") {
+    new Notification(title, { body });
   }
 }
 
@@ -63,13 +61,11 @@ export async function requestNotificationPermission() {
       console.warn("Tauri notification permission check failed", e);
     }
     return permissionGranted;
-  } else {
-    if ("Notification" in window) {
-      const perm = await Notification.requestPermission();
-      return perm === "granted";
-    }
-    return false;
+  } else if ("Notification" in window) {
+    const perm = await Notification.requestPermission();
+    return perm === "granted";
   }
+  return false;
 }
 
 export async function registerGlobalShortcut(shortcut: string, handler: () => void) {

@@ -1,6 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { useLiveQuery } from "dexie-react-hooks";
-import { getSetting } from "@/lib/repo";
+import { createContext, useContext, useEffect, useState, useMemo, type ReactNode } from "react";
 
 interface TimerTickContextType {
   now: number;
@@ -12,11 +10,11 @@ export function useTimerTick() {
   return useContext(TimerTickContext);
 }
 
-export function TimerTickProvider({ children }: { children: ReactNode }) {
+export function TimerTickProvider({ children }: { readonly children: ReactNode }) {
   const [now, setNow] = useState(Date.now());
 
   // We can also use this global ticker to do the midnight boundary check
-  const lastMidnightRef = useState(() => new Date().setHours(0, 0, 0, 0))[0];
+  const [lastMidnight] = useState(() => new Date().setHours(0, 0, 0, 0));
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -25,7 +23,7 @@ export function TimerTickProvider({ children }: { children: ReactNode }) {
 
       // Check midnight boundary
       const currentMidnight = new Date(current).setHours(0, 0, 0, 0);
-      if (currentMidnight > lastMidnightRef) {
+      if (currentMidnight > lastMidnight) {
         // Daily Reset! Instead of a hard reload, emit an event.
         // Listeners (like dashboard) can catch this to refresh their data.
         window.dispatchEvent(new Event("midnight-rollover"));
@@ -33,7 +31,9 @@ export function TimerTickProvider({ children }: { children: ReactNode }) {
     }, 1000); // 1000ms for responsiveness (throttled for CPU/GPU efficiency)
 
     return () => clearInterval(id);
-  }, [lastMidnightRef]);
+  }, [lastMidnight]);
 
-  return <TimerTickContext.Provider value={{ now }}>{children}</TimerTickContext.Provider>;
+  const value = useMemo(() => ({ now }), [now]);
+
+  return <TimerTickContext.Provider value={value}>{children}</TimerTickContext.Provider>;
 }

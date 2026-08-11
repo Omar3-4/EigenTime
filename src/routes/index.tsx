@@ -299,6 +299,7 @@ function Checklist() {
 
               {!task.done && (
                 <button
+                  type="button"
                   onClick={() => setUpNext(isUpNext ? null : task.id)}
                   title={isUpNext ? "Remove from Up Next" : "Set as Up Next"}
                   className={cn(

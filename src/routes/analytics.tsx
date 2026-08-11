@@ -178,6 +178,7 @@ function AnalyticsBody() {
         {isEditing ? (
           <>
             <button
+              type="button"
               key="reset-btn"
               onClick={() => {
                 setLayouts(defaultLayouts);
@@ -189,6 +190,7 @@ function AnalyticsBody() {
               Reset Layouts
             </button>
             <button
+              type="button"
               key="save-btn"
               onClick={() => {
                 saveLayout();
@@ -202,6 +204,7 @@ function AnalyticsBody() {
           </>
         ) : (
           <button
+            type="button"
             key="edit-btn"
             onClick={() => setIsEditing(true)}
             className="flex items-center gap-2 rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-muted"
@@ -216,7 +219,8 @@ function AnalyticsBody() {
         (() => {
           const currentLayouts: Layouts = {};
           for (const key of Object.keys(layouts)) {
-            currentLayouts[key] = layouts[key]?.map((l: any) => ({ ...l, static: !isEditing })) || [];
+            currentLayouts[key] =
+              layouts[key]?.map((l: any) => ({ ...l, static: !isEditing })) || [];
           }
           return (
             <div dir="ltr">

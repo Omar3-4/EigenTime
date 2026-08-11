@@ -1,41 +1,29 @@
-import { getDb } from "@/lib/db";
+import { getDb, DailyStat } from "@/lib/db";
 import { dayKey } from "@/lib/time";
 
-export async function getCurrentStreak(): Promise<{ streak: number; highest: number }> {
-  const db = getDb();
-  const allStats = await db.dailyStats.orderBy("day").reverse().toArray();
+function getPreviousDay(dayStr: string): string {
+  const d = new Date(dayStr);
+  d.setDate(d.getDate() - 1);
+  return d.toISOString().split("T")[0] as string;
+}
 
-  if (allStats.length === 0) return { streak: 0, highest: 0 };
+function getNextDay(dayStr: string): string {
+  const d = new Date(dayStr);
+  d.setDate(d.getDate() + 1);
+  return d.toISOString().split("T")[0] as string;
+}
 
-  let currentStreak = 0;
+function calculateHighestStreak(ascendingStats: DailyStat[]): number {
   let highest = 0;
-  const tempStreak = 0;
-
-  // Track highest streak overall
-  // and track current streak going backwards from today
-  const today = dayKey();
-  const yesterdayDate = new Date();
-  yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-  const yesterday = yesterdayDate.toISOString().split("T")[0] as string;
-
-  let expectedNextDay: string | null = null;
-  let isCurrentStreakValid = true;
-
-  // We sort ascending for highest streak calculation
-  const ascendingStats = [...allStats].reverse();
   let tempHighStreak = 0;
   let lastDaySeen: string | null = null;
 
   for (const stat of ascendingStats) {
     if (stat.totalSec >= 3600) {
-      // arbitrary 1 hour minimum for streak? Or just any focus?
-      // Let's say any focus time counts
       if (!lastDaySeen) {
         tempHighStreak = 1;
       } else {
-        const prev = new Date(lastDaySeen);
-        prev.setDate(prev.getDate() + 1);
-        if ((prev.toISOString().split("T")[0] as string) === stat.day) {
+        if (getNextDay(lastDaySeen) === stat.day) {
           tempHighStreak++;
         } else {
           tempHighStreak = 1;
@@ -45,31 +33,47 @@ export async function getCurrentStreak(): Promise<{ streak: number; highest: num
       if (tempHighStreak > highest) highest = tempHighStreak;
     }
   }
+  return highest;
+}
 
-  // Calculate current streak
-  for (const stat of allStats) {
+function calculateCurrentStreak(descendingStats: DailyStat[]): number {
+  let currentStreak = 0;
+  const today = dayKey();
+  const yesterday = getPreviousDay(new Date().toISOString().split("T")[0] as string);
+  let expectedNextDay: string | null = null;
+  let isCurrentStreakValid = true;
+
+  for (const stat of descendingStats) {
     if (stat.totalSec > 0) {
       if (!expectedNextDay) {
         if (stat.day === today || stat.day === yesterday) {
           currentStreak = 1;
-          const prev = new Date(stat.day);
-          prev.setDate(prev.getDate() - 1);
-          expectedNextDay = prev.toISOString().split("T")[0] as string;
+          expectedNextDay = getPreviousDay(stat.day);
         } else {
           isCurrentStreakValid = false;
         }
       } else if (isCurrentStreakValid) {
         if (stat.day === expectedNextDay) {
           currentStreak++;
-          const prev = new Date(stat.day);
-          prev.setDate(prev.getDate() - 1);
-          expectedNextDay = prev.toISOString().split("T")[0] as string;
+          expectedNextDay = getPreviousDay(stat.day);
         } else {
           isCurrentStreakValid = false;
         }
       }
     }
   }
+  return currentStreak;
+}
+
+export async function getCurrentStreak(): Promise<{ streak: number; highest: number }> {
+  const db = getDb();
+  const allStats = await db.dailyStats.orderBy("day").reverse().toArray();
+
+  if (allStats.length === 0) return { streak: 0, highest: 0 };
+
+  const ascendingStats = [...allStats].reverse();
+  const highest = calculateHighestStreak(ascendingStats);
+  const currentStreak = calculateCurrentStreak(allStats);
 
   return { streak: currentStreak, highest };
 }

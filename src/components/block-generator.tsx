@@ -109,6 +109,7 @@ export function BlockGeneratorModal({
             Block Generator Pipeline
           </h2>
           <button
+            type="button"
             onClick={onClose}
             className="p-2 hover:bg-secondary rounded-full text-muted-foreground transition-colors"
           >
@@ -119,7 +120,7 @@ export function BlockGeneratorModal({
         <div className="space-y-6">
           {/* Total Time */}
           <div>
-            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 block">
+            <label htmlFor="field" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 block">
               Available Time (Minutes)
             </label>
             <input
@@ -134,11 +135,12 @@ export function BlockGeneratorModal({
 
           {/* Slicing Style */}
           <div>
-            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 block">
+            <label htmlFor="field" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 block">
               Pomodoro Slicing Style
             </label>
             <div className="grid grid-cols-2 gap-2">
               <button
+                type="button"
                 onClick={() => setSliceStyle("25_5")}
                 className={cn(
                   "px-4 py-2 rounded-xl text-sm font-semibold transition-colors",
@@ -150,6 +152,7 @@ export function BlockGeneratorModal({
                 25m Focus + 5m Break
               </button>
               <button
+                type="button"
                 onClick={() => setSliceStyle("50_10")}
                 className={cn(
                   "px-4 py-2 rounded-xl text-sm font-semibold transition-colors",
@@ -165,7 +168,7 @@ export function BlockGeneratorModal({
 
           {/* Subjects */}
           <div>
-            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 block">
+            <label htmlFor="field" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 block">
               Subjects & Relative Weights
             </label>
             <div className="space-y-2 mb-3">
@@ -187,6 +190,7 @@ export function BlockGeneratorModal({
                         className="w-16 bg-background rounded-lg px-2 py-1 text-sm text-center border outline-none"
                       />
                       <button
+                        type="button"
                         onClick={() => removeSubject(s.subjectId)}
                         className="p-1.5 text-rose-500 hover:bg-rose-500/10 rounded-lg"
                       >
@@ -208,6 +212,7 @@ export function BlockGeneratorModal({
                 .filter((s) => !selected.find((sel) => sel.subjectId === s.id))
                 .map((s) => (
                   <button
+                    type="button"
                     key={s.id}
                     onClick={() => addSubject(s.id)}
                     className="flex items-center gap-1 bg-secondary hover:bg-secondary/80 text-muted-foreground text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors border"
@@ -219,6 +224,7 @@ export function BlockGeneratorModal({
           </div>
 
           <button
+            type="button"
             onClick={handleGenerate}
             disabled={selected.length === 0}
             className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-primary-foreground shadow-lg transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:pointer-events-none"

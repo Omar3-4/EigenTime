@@ -1,11 +1,11 @@
 import React from "react";
 
 interface ArcProgressProps {
-  size: number;
-  radius: number;
-  arcColor: string;
-  ratio: number;
-  isDeepFlow: boolean;
+  readonly size: number;
+  readonly radius: number;
+  readonly arcColor: string;
+  readonly ratio: number;
+  readonly isDeepFlow: boolean;
 }
 
 export function ArcProgress({ size, radius, arcColor, ratio, isDeepFlow }: ArcProgressProps) {
@@ -23,7 +23,7 @@ export function ArcProgress({ size, radius, arcColor, ratio, isDeepFlow }: ArcPr
           const cx = size / 2;
           return (
             <line
-              key={i}
+              key={`tick-${i}`}
               x1={cx + Math.cos(angle) * inner}
               y1={cx + Math.sin(angle) * inner}
               x2={cx + Math.cos(angle) * outer}

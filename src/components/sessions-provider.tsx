@@ -9,14 +9,12 @@ interface SessionsContextValue {
 
 const SessionsContext = createContext<SessionsContextValue | null>(null);
 
-export function SessionsProvider({ children }: { children: ReactNode }) {
+export function SessionsProvider({ children }: { readonly children: ReactNode }) {
   const sessions90 = useLiveQuery(() => sessionsInRange(90), [], []);
 
-  return (
-    <SessionsContext.Provider value={{ sessions90: sessions90 || [] }}>
-      {children}
-    </SessionsContext.Provider>
-  );
+  const value = React.useMemo(() => ({ sessions90: sessions90 || [] }), [sessions90]);
+
+  return <SessionsContext.Provider value={value}>{children}</SessionsContext.Provider>;
 }
 
 export function useSessions() {

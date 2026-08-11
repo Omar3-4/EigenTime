@@ -31,7 +31,7 @@ export function DataGate({ children }: { children: ReactNode }) {
     return (
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="glass h-28 animate-pulse rounded-2xl" />
+          <div key={`idx-${i}`} className="glass h-28 animate-pulse rounded-2xl" />
         ))}
       </div>
     );
