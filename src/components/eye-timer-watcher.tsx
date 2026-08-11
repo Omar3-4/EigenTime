@@ -15,7 +15,11 @@ export function EyeTimerWatcher() {
   const snapRow = useLiveQuery(() => getDb().timerSnapshots.get("current"), [], null);
   const snap = snapRow?.snapshot;
 
-  const eyeBreakEnabled = useLiveQuery(() => getSetting("eyeBreakEnabled", false, z.boolean()), [], false);
+  const eyeBreakEnabled = useLiveQuery(
+    () => getSetting("eyeBreakEnabled", false, z.boolean()),
+    [],
+    false,
+  );
   const notifEnabled = useLiveQuery(() => getSetting("notificationsEnabled", true), [], true);
 
   const lastEyeBreakRef = useRef<number>(0);
@@ -27,10 +31,10 @@ export function EyeTimerWatcher() {
 
     const currentFocusSec = Math.floor(totalFocusSec(snap, now));
     const intervals = Math.floor(currentFocusSec / TWENTY_MINUTES_SEC);
-    
+
     if (intervals > 0 && intervals > lastEyeBreakRef.current) {
       lastEyeBreakRef.current = intervals;
-      
+
       if (checkIsTauri()) {
         invoke("spawn_eye_rest").catch(console.error);
       } else {
@@ -41,7 +45,7 @@ export function EyeTimerWatcher() {
         if (notifEnabled) {
           notify(
             "20-20-20 Eye Break!",
-            "Look at something 20 feet away for 20 seconds to protect your eyes."
+            "Look at something 20 feet away for 20 seconds to protect your eyes.",
           );
         }
       }

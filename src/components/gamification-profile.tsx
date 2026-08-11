@@ -23,7 +23,10 @@ export function GamificationProfile() {
   const level = calculateLevel(xp);
   const currentLevelXp = xpForCurrentLevel(level);
   const nextLevelXp = xpForNextLevel(level);
-  const progressPercent = Math.max(0, Math.min(100, ((xp - currentLevelXp) / (nextLevelXp - currentLevelXp)) * 100));
+  const progressPercent = Math.max(
+    0,
+    Math.min(100, ((xp - currentLevelXp) / (nextLevelXp - currentLevelXp)) * 100),
+  );
 
   return (
     <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">

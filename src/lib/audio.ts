@@ -6,7 +6,7 @@ declare global {
 
 let ctx: AudioContext | null = null;
 
-async function initCtx() {
+export async function initCtx() {
   if (!ctx) {
     ctx = new (window.AudioContext || window.webkitAudioContext)();
   }

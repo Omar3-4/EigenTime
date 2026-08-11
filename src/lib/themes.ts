@@ -284,7 +284,7 @@ function hexToRgb(hex: string) {
 
 export function generateCustomTheme(hex: string, isDark: boolean): ThemeConfig {
   const { r, g, b } = hexToRgb(hex);
-  
+
   if (isDark) {
     return {
       id: "custom",
@@ -322,7 +322,10 @@ export function applyThemeConfig(theme: ThemeConfig): void {
   const root = document.documentElement;
 
   const isDark =
-    theme.category === "dark" || theme.category === "dim" || theme.id === "neon-synth" || theme.id === "dusk-slate-dark";
+    theme.category === "dark" ||
+    theme.category === "dim" ||
+    theme.id === "neon-synth" ||
+    theme.id === "dusk-slate-dark";
   const primaryFg = isDark ? "#000000" : "#ffffff";
   const secondary = isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.06)";
   const muted = isDark ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.04)";

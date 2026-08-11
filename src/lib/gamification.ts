@@ -44,12 +44,9 @@ export async function processSessionCompletion(session: Session) {
     const totalXp = await getTotalXP();
     const oldLevel = calculateLevel(totalXp - (session.xp ?? 0));
     const newLevel = calculateLevel(totalXp);
-    
+
     if (newLevel > oldLevel) {
-      await notify(
-        "🎉 Level Up!",
-        `You reached Level ${newLevel}! Keep up the great work.`
-      );
+      await notify("🎉 Level Up!", `You reached Level ${newLevel}! Keep up the great work.`);
     }
   }
 

@@ -49,11 +49,13 @@ export const Route = createFileRoute("/")({
 function DashboardPage() {
   const { t } = useI18n();
   const statRow = useLiveQuery(() => todayStat(), [], null);
-  
+
   const { now } = useTimerTick();
   const currentSnapRow = useLiveQuery(() => getDb().timerSnapshots.get("current"), [], null);
-  const liveFocus = currentSnapRow?.snapshot ? Math.round(totalFocusSec(currentSnapRow.snapshot, now)) : 0;
-  
+  const liveFocus = currentSnapRow?.snapshot
+    ? Math.round(totalFocusSec(currentSnapRow.snapshot, now))
+    : 0;
+
   const stat = statRow ? { ...statRow, totalSec: statRow.totalSec + liveFocus } : null;
 
   const goalHours =
@@ -356,10 +358,7 @@ function LastSession() {
 function DashboardInsights() {
   const data = useLiveQuery(
     async () => {
-      const [subj, tsk] = await Promise.all([
-        listSubjects(),
-        listTasks(),
-      ]);
+      const [subj, tsk] = await Promise.all([listSubjects(), listTasks()]);
       return { subjects: subj, tasks: tsk };
     },
     [],

@@ -4,12 +4,12 @@ import { dayKey } from "@/lib/time";
 export async function getCurrentStreak(): Promise<{ streak: number; highest: number }> {
   const db = getDb();
   const allStats = await db.dailyStats.orderBy("day").reverse().toArray();
-  
+
   if (allStats.length === 0) return { streak: 0, highest: 0 };
 
   let currentStreak = 0;
   let highest = 0;
-  let tempStreak = 0;
+  const tempStreak = 0;
 
   // Track highest streak overall
   // and track current streak going backwards from today
@@ -27,14 +27,15 @@ export async function getCurrentStreak(): Promise<{ streak: number; highest: num
   let lastDaySeen: string | null = null;
 
   for (const stat of ascendingStats) {
-    if (stat.totalSec >= 3600) { // arbitrary 1 hour minimum for streak? Or just any focus?
+    if (stat.totalSec >= 3600) {
+      // arbitrary 1 hour minimum for streak? Or just any focus?
       // Let's say any focus time counts
       if (!lastDaySeen) {
         tempHighStreak = 1;
       } else {
         const prev = new Date(lastDaySeen);
         prev.setDate(prev.getDate() + 1);
-        if (prev.toISOString().split("T")[0] as string === stat.day) {
+        if ((prev.toISOString().split("T")[0] as string) === stat.day) {
           tempHighStreak++;
         } else {
           tempHighStreak = 1;

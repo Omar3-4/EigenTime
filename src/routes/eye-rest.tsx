@@ -26,11 +26,11 @@ function EyeRest() {
       <div className="absolute top-8 text-center text-white/50 text-sm tracking-widest uppercase">
         20-20-20 Rule
       </div>
-      
+
       <h1 className="text-4xl font-light mb-8 max-w-lg text-center leading-relaxed">
         Look at something 20 feet away to rest your eyes.
       </h1>
-      
+
       <div className="flex items-center justify-center relative">
         <svg className="w-64 h-64 transform -rotate-90">
           <circle
@@ -49,13 +49,11 @@ function EyeRest() {
             strokeWidth="8"
             fill="none"
             strokeDasharray={120 * 2 * Math.PI}
-            strokeDashoffset={(120 * 2 * Math.PI) * (1 - timeLeft / 20)}
+            strokeDashoffset={120 * 2 * Math.PI * (1 - timeLeft / 20)}
             style={{ transition: "stroke-dashoffset 1s linear" }}
           />
         </svg>
-        <span className="absolute text-7xl font-light tabular-nums">
-          {timeLeft}
-        </span>
+        <span className="absolute text-7xl font-light tabular-nums">{timeLeft}</span>
       </div>
 
       <button

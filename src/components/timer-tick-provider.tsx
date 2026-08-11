@@ -26,18 +26,14 @@ export function TimerTickProvider({ children }: { children: ReactNode }) {
       // Check midnight boundary
       const currentMidnight = new Date(current).setHours(0, 0, 0, 0);
       if (currentMidnight > lastMidnightRef) {
-        // Daily Reset! We can reload the page or trigger an event.
-        // Doing a simple reload ensures all state starts fresh for the new day.
-        window.location.reload();
+        // Daily Reset! Instead of a hard reload, emit an event.
+        // Listeners (like dashboard) can catch this to refresh their data.
+        window.dispatchEvent(new Event("midnight-rollover"));
       }
     }, 1000); // 1000ms for responsiveness (throttled for CPU/GPU efficiency)
 
     return () => clearInterval(id);
   }, [lastMidnightRef]);
 
-  return (
-    <TimerTickContext.Provider value={{ now }}>
-      {children}
-    </TimerTickContext.Provider>
-  );
+  return <TimerTickContext.Provider value={{ now }}>{children}</TimerTickContext.Provider>;
 }

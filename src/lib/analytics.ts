@@ -662,22 +662,25 @@ export interface Forecast {
 }
 
 export function forecastNextDays(sessions: Session[], daysToPredict = 3): Forecast[] {
-  const focus = sessions.filter(s => s.mode === "focus");
+  const focus = sessions.filter((s) => s.mode === "focus");
   const today = new Date();
-  today.setHours(0,0,0,0);
+  today.setHours(0, 0, 0, 0);
   const historyDays = 30;
-  const data: {x: number, y: number}[] = [];
-  
+  const data: { x: number; y: number }[] = [];
+
   for (let i = historyDays - 1; i >= 0; i--) {
     const d = new Date(today);
     d.setDate(d.getDate() - i);
     const key = dayKey(d);
-    const totalSec = focus.filter(s => s.day === key).reduce((a, s) => a + s.durationSec, 0);
+    const totalSec = focus.filter((s) => s.day === key).reduce((a, s) => a + s.durationSec, 0);
     data.push({ x: historyDays - i, y: totalSec });
   }
 
   const n = data.length;
-  let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+  let sumX = 0,
+    sumY = 0,
+    sumXY = 0,
+    sumXX = 0;
   for (const p of data) {
     sumX += p.x;
     sumY += p.y;
@@ -698,7 +701,7 @@ export function forecastNextDays(sessions: Session[], daysToPredict = 3): Foreca
     results.push({
       day: dayKey(futureDate),
       predictedSec: Math.round(pred),
-      trend: slope > 100 ? "up" : slope < -100 ? "down" : "flat"
+      trend: slope > 100 ? "up" : slope < -100 ? "down" : "flat",
     });
   }
   return results;
@@ -706,8 +709,12 @@ export function forecastNextDays(sessions: Session[], daysToPredict = 3): Foreca
 
 /* ---------------------------------------------- adaptive pomodoro */
 
-export function getOptimalPomodoro(sessions: Session[]): { focusMin: number; breakMin: number; fei: number } | null {
-  const focus = sessions.filter(s => s.mode === "focus" && typeof s.fei === "number" && s.durationSec >= 300);
+export function getOptimalPomodoro(
+  sessions: Session[],
+): { focusMin: number; breakMin: number; fei: number } | null {
+  const focus = sessions.filter(
+    (s) => s.mode === "focus" && typeof s.fei === "number" && s.durationSec >= 300,
+  );
   if (focus.length < 5) return null;
 
   const groups = new Map<number, { feiSum: number; count: number }>();
@@ -732,18 +739,25 @@ export function getOptimalPomodoro(sessions: Session[]): { focusMin: number; bre
   }
   if (bestScore === -1) return null;
 
-  return { focusMin: bestMin, breakMin: Math.max(5, Math.round(bestMin / 5)), fei: Math.round(bestScore) };
+  return {
+    focusMin: bestMin,
+    breakMin: Math.max(5, Math.round(bestMin / 5)),
+    fei: Math.round(bestScore),
+  };
 }
 
 /* ---------------------------------------------- smart task prediction (KNN) */
 
-export function predictTasksKNN(tasks: import("./db").Task[], currentSubjectId: string | null): string[] {
+export function predictTasksKNN(
+  tasks: import("./db").Task[],
+  currentSubjectId: string | null,
+): string[] {
   if (tasks.length === 0) return [];
   const now = new Date();
   const currentHour = now.getHours() + now.getMinutes() / 60;
   const currentDay = now.getDay();
 
-  const distances = tasks.map(t => {
+  const distances = tasks.map((t) => {
     let dist = 0;
     if (t.subjectId !== currentSubjectId) dist += 100;
 
@@ -766,17 +780,22 @@ export function predictTasksKNN(tasks: import("./db").Task[], currentSubjectId: 
 
   const k = 10;
   const topK = distances.slice(0, k);
-  
+
   // Count frequencies in top K
   const freqs = new Map<string, number>();
   for (const item of topK) {
     // Filter out tasks already in the list that are incomplete
-    const isCurrentlyActive = tasks.some(existing => existing.title.toLowerCase() === item.title.toLowerCase() && existing.done === 0);
+    const isCurrentlyActive = tasks.some(
+      (existing) =>
+        existing.title.toLowerCase() === item.title.toLowerCase() && existing.done === 0,
+    );
     if (isCurrentlyActive) continue;
 
-    freqs.set(item.title, (freqs.get(item.title) ?? 0) + (1 / (item.dist + 1)));
+    freqs.set(item.title, (freqs.get(item.title) ?? 0) + 1 / (item.dist + 1));
   }
 
-  const sortedTitles = Array.from(freqs.entries()).sort((a, b) => b[1] - a[1]).map(e => e[0]);
+  const sortedTitles = Array.from(freqs.entries())
+    .sort((a, b) => b[1] - a[1])
+    .map((e) => e[0]);
   return sortedTitles.slice(0, 3); // top 3 suggestions
 }

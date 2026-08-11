@@ -378,69 +378,6 @@ function SettingsSuite() {
           </div>
         </section>
 
-        {/* Timer Defaults */}
-        <section className="glass space-y-6 rounded-2xl p-6 sm:p-8 transition-all duration-300 ease-out hover:shadow-md hover:scale-[1.01] md:col-span-2">
-          <div className="border-b border-border/50 pb-2">
-            <h2 className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">
-              {t("timerDefaults")}
-            </h2>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-3">
-            <label className="space-y-1.5">
-              <span className="text-xs font-medium text-muted-foreground">
-                {t("focusDuration")}
-              </span>
-              <select
-                value={focusDuration}
-                onChange={(e) => void setSetting("defaultFocusDuration", Number(e.target.value))}
-                className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none shadow-inner transition-all hover:border-muted-foreground/30 focus:border-ring focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
-              >
-                <option value={15}>15 {t("mins")}</option>
-                <option value={25}>25 {t("minsPomodoro")}</option>
-                <option value={45}>45 {t("minsUltradian")}</option>
-                <option value={60}>60 {t("mins")}</option>
-                <option value={90}>90 {t("minsDeepWork")}</option>
-              </select>
-            </label>
-
-            <label className="space-y-1.5">
-              <span className="text-xs font-medium text-muted-foreground">{t("shortBreak")}</span>
-              <select
-                value={shortBreak}
-                onChange={(e) => void setSetting("defaultShortBreak", Number(e.target.value))}
-                className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none shadow-inner transition-all hover:border-muted-foreground/30 focus:border-ring focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
-              >
-                <option value={3}>3 {t("mins")}</option>
-                <option value={5}>5 {t("mins")}</option>
-                <option value={10}>10 {t("mins")}</option>
-              </select>
-            </label>
-
-            <label className="space-y-1.5">
-              <span className="text-xs font-medium text-muted-foreground">{t("longBreak")}</span>
-              <select
-                value={longBreak}
-                onChange={(e) => void setSetting("defaultLongBreak", Number(e.target.value))}
-                className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none shadow-inner transition-all hover:border-muted-foreground/30 focus:border-ring focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
-              >
-                <option value={15}>15 {t("mins")}</option>
-                <option value={20}>20 {t("mins")}</option>
-                <option value={30}>30 {t("mins")}</option>
-              </select>
-            </label>
-          </div>
-
-          <div className="flex items-center justify-between pt-2">
-            <span className="text-sm font-medium">{t("autoStartBreaks")}</span>
-            <input
-              type="checkbox"
-              checked={autoStartBreaks}
-              onChange={(e) => void setSetting("autoStartBreaks", e.target.checked)}
-              className="size-4 accent-purple-500"
-            />
-          </div>
-        </section>
-
         {/* Behavioral AI & Intelligence Thresholds */}
         <section className="glass space-y-6 rounded-2xl p-6 sm:p-8 transition-all duration-300 ease-out hover:shadow-md hover:scale-[1.01] md:col-span-2">
           <div className="border-b border-border/50 pb-2">

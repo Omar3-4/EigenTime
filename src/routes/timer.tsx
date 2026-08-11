@@ -65,7 +65,7 @@ function QuickMetricsOverview() {
   const stat = useLiveQuery(() => todayStat(), [], null);
   const subjects = useLiveQuery(() => listSubjects(), [], []);
   const { sessions90: sessions } = useSessions();
-  
+
   // React hook rules require hooks to be called at the top level
   // Since we can't easily memoize outside of components, we do it here.
   const forecast = useMemo(() => forecastNextDays(sessions ?? []), [sessions]);
@@ -107,20 +107,28 @@ function QuickMetricsOverview() {
     },
     {
       label: "3-Day Forecast",
-      value: `${forecast.map(f => Math.round(f.predictedSec / 3600)).join("h · ")}h`,
+      value: `${forecast.map((f) => Math.round(f.predictedSec / 3600)).join("h · ")}h`,
       icon: TrendingUp,
       color: "goal",
       renderExtra: () => {
         const max = Math.max(...forecast.map((f) => f.predictedSec), 3600);
         return (
-          <div className="flex items-end gap-1 h-8 ms-auto opacity-80" title="Predicted focus time for next 3 days">
+          <div
+            className="flex items-end gap-1 h-8 ms-auto opacity-80"
+            title="Predicted focus time for next 3 days"
+          >
             {forecast.map((f) => (
               <div
                 key={f.day}
                 className="w-2 rounded-full transition-all"
-                style={{ 
-                  height: `${Math.max(15, (f.predictedSec / max) * 100)}%`, 
-                  background: f.trend === "up" ? "var(--goal)" : f.trend === "down" ? "var(--destructive)" : "var(--focus)" 
+                style={{
+                  height: `${Math.max(15, (f.predictedSec / max) * 100)}%`,
+                  background:
+                    f.trend === "up"
+                      ? "var(--goal)"
+                      : f.trend === "down"
+                        ? "var(--destructive)"
+                        : "var(--focus)",
                 }}
                 title={`${f.day}: ${formatHoursShort(f.predictedSec)}`}
               />
@@ -139,19 +147,19 @@ function QuickMetricsOverview() {
         const softColor = getSubjectSoftColor(c.color);
         return (
           <div key={c.label} className="glass rounded-2xl p-4 transition-all hover:scale-[1.01]">
-              <div className="flex items-center gap-3 w-full">
-                <span
-                  className="flex size-10 items-center justify-center rounded-xl shadow-sm shrink-0"
-                  style={{ background: softColor, color: mainColor }}
-                >
-                  <Icon className="size-5" />
-                </span>
-                <div className="min-w-0">
-                  <p className="truncate text-xs font-medium text-muted-foreground">{c.label}</p>
-                  <p className="tabular truncate font-display text-xl font-semibold">{c.value}</p>
-                </div>
-                {c.renderExtra && c.renderExtra()}
+            <div className="flex items-center gap-3 w-full">
+              <span
+                className="flex size-10 items-center justify-center rounded-xl shadow-sm shrink-0"
+                style={{ background: softColor, color: mainColor }}
+              >
+                <Icon className="size-5" />
+              </span>
+              <div className="min-w-0">
+                <p className="truncate text-xs font-medium text-muted-foreground">{c.label}</p>
+                <p className="tabular truncate font-display text-xl font-semibold">{c.value}</p>
               </div>
+              {c.renderExtra && c.renderExtra()}
+            </div>
           </div>
         );
       })}
