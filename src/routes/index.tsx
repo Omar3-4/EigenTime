@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { z } from "zod";
 import { useLiveQuery } from "dexie-react-hooks";
 import { getTotalXP, getLevelFromXP } from "../lib/repo";
@@ -29,6 +30,8 @@ import {
 import { useSessions } from "@/components/sessions-provider";
 import { predictNextTask, buildHabitHealthScore } from "@/lib/analytics";
 import { NextTaskPanel, HabitHealthPanel } from "@/components/behavioral-panels";
+import { EditSessionModal } from "@/components/edit-session-modal";
+import type { Session } from "@/lib/db";
 import { formatHoursShort } from "@/lib/time";
 import { subjectColorVar, subjectSoftVar } from "@/lib/subject-colors";
 import { cn } from "@/lib/utils";
@@ -77,7 +80,7 @@ function DashboardPage() {
           <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
             <Checklist />
             <div className="space-y-4">
-              <LastSession />
+              <RecentActivity />
             </div>
           </div>
         </div>
@@ -323,35 +326,57 @@ function Checklist() {
   );
 }
 
-function LastSession() {
+function RecentActivity() {
   const { t, lang } = useI18n();
-  const sessions = useLiveQuery(() => recentSessions(1), [], []);
+  // Fetch up to 8 recent sessions across any days
+  const sessions = useLiveQuery(() => recentSessions(8), [], []);
   const subjects = useLiveQuery(() => listSubjects(), [], []);
-  const last = sessions?.[0];
+  const [editingSession, setEditingSession] = useState<Session | null>(null);
 
-  if (!last) return null;
-
-  const subject = subjects?.find((x) => x.id === last.subjectId);
+  if (!sessions || sessions.length === 0) return null;
 
   return (
     <section className="glass rounded-2xl p-6 sm:p-8 transition-all duration-300 ease-out hover:shadow-md">
-      <h2 className="mb-4 text-base font-semibold">Last Session</h2>
-      <div className="flex items-center gap-3 py-3 rounded-lg px-2 -mx-2">
-        <span
-          className="size-2.5 shrink-0 rounded-full"
-          style={{ background: subject ? subjectColorVar[subject.color] : "var(--focus)" }}
-        />
-        <span className="min-w-0 flex-1 truncate text-sm">{subject?.name ?? t("noSubject")}</span>
-        <span className="tabular shrink-0 text-sm font-semibold">
-          {formatHoursShort(last.durationSec)}
-        </span>
-        <span className="tabular shrink-0 text-xs text-muted-foreground">
-          {new Date(last.startedAt).toLocaleTimeString(lang === "ar" ? "ar" : "en-GB", {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-base font-semibold">Recent Activity</h2>
+        <span className="text-xs font-medium text-focus bg-focus-soft px-2 py-1 rounded-md">
+          History
         </span>
       </div>
+      <div className="space-y-1">
+        {sessions.map((session) => {
+          const subject = subjects?.find((x) => x.id === session.subjectId);
+          return (
+            <div key={session.id} className="group flex items-center gap-3 py-2 rounded-lg px-2 -mx-2 hover:bg-white/5 transition-colors">
+              <span
+                className="size-2.5 shrink-0 rounded-full"
+                style={{ background: subject ? subjectColorVar[subject.color] : "var(--focus)" }}
+              />
+              <span className="min-w-0 flex-1 truncate text-sm">
+                {subject?.name ?? t("noSubject")}
+              </span>
+              <span className="tabular shrink-0 text-sm font-semibold">
+                {formatHoursShort(session.durationSec)}
+              </span>
+              <span className="tabular shrink-0 text-xs text-muted-foreground w-16 text-right">
+                {new Date(session.startedAt).toLocaleTimeString(lang === "ar" ? "ar" : "en-GB", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </span>
+              <button
+                onClick={() => setEditingSession(session)}
+                className="shrink-0 text-xs opacity-0 group-hover:opacity-100 transition-opacity text-blue-400 hover:text-blue-300 ml-2"
+              >
+                Edit
+              </button>
+            </div>
+          );
+        })}
+      </div>
+      {editingSession && (
+        <EditSessionModal session={editingSession} onClose={() => setEditingSession(null)} />
+      )}
     </section>
   );
 }

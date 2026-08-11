@@ -23,7 +23,7 @@ fn spawn_widget(app: tauri::AppHandle) {
   .always_on_top(true)        // Float above ALL other apps
   .transparent(true)          // Allow rounded glass pill styling
   .shadow(false)
-  .skip_taskbar(false)        // Stay accessible/visible in Windows Taskbar
+  .skip_taskbar(true)        // Skip taskbar so it behaves as an OS overlay/tool window (appears on all virtual desktops on Windows)
   .build();
 
   // Pin to all virtual desktops so it survives switching desktops
