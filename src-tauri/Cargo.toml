@@ -1,6 +1,6 @@
 [package]
 name = "app"
-version = "0.1.0"
+version = "0.1.7"
 description = "A Tauri App"
 authors = ["you"]
 license = ""
@@ -28,3 +28,10 @@ tauri-plugin-window-state = "2.4.1"
 tauri-plugin-global-shortcut = "2.3.2"
 tauri-plugin-shell = "2.3.5"
 tauri-plugin-fs = "2.5.1"
+
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.61", features = [
+  "Win32_Foundation",
+  "Win32_System_Com",
+  "Win32_UI_Shell",
+] }

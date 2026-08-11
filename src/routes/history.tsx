@@ -8,7 +8,7 @@ import { useState, useMemo } from "react";
 import type { Session, Subject } from "@/lib/db";
 import { Trash2, Edit2, Clock, X, Save } from "lucide-react";
 import { formatHoursShort, formatHMS } from "@/lib/time";
-import { subjectColorVar, subjectSoftVar } from "@/lib/subject-colors";
+import { getSubjectColor, getSubjectSoftColor } from "@/lib/subject-colors";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/history")({
@@ -102,8 +102,8 @@ function HistoryBody() {
                     <div 
                       className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-bold"
                       style={{
-                        backgroundColor: subjectSoftVar(color),
-                        color: subjectColorVar(color),
+                        backgroundColor: getSubjectSoftColor(color),
+                        color: getSubjectColor(color),
                       }}
                     >
                       {subj?.name?.charAt(0).toUpperCase() || "?"}

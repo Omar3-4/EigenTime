@@ -1,5 +1,6 @@
 use tauri::Manager;
 mod tray;
+mod virtual_desktop;
 
 #[tauri::command]
 fn spawn_widget(app: tauri::AppHandle) {
@@ -24,6 +25,11 @@ fn spawn_widget(app: tauri::AppHandle) {
   .shadow(false)
   .skip_taskbar(false)        // Stay accessible/visible in Windows Taskbar
   .build();
+
+  // Pin to all virtual desktops so it survives switching desktops
+  if let Some(win) = app.get_webview_window("widget") {
+    virtual_desktop::pin_to_all_virtual_desktops(&win);
+  }
 }
 
 #[tauri::command]

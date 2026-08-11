@@ -43,8 +43,23 @@ export function WidgetPill() {
     }, 500);
     // Immediate first read
     readSnap().then(setSnap);
+
+    // Block browser default keyboard shortcuts (Ctrl+D = bookmark, F5 = reload, etc.)
+    // These would freeze or dismiss the widget overlay.
+    const blockShortcuts = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      if (["F5", "F12", "F11", "F3", "F6"].includes(e.key)) {
+        e.preventDefault();
+      }
+    };
+    document.addEventListener("keydown", blockShortcuts, { capture: true });
+
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
+      document.removeEventListener("keydown", blockShortcuts, { capture: true });
     };
   }, []);
 
