@@ -65,17 +65,11 @@ pub fn pin_to_all_virtual_desktops(window: &tauri::WebviewWindow) {
         };
 
         // Query for the pin interface
-        let mut raw: *mut core::ffi::c_void = core::ptr::null_mut();
-        let hr = sp.QueryService(
-            &SID_PINNED_APPS,
-            &IVirtualDesktopPinnedApps::IID,
-            &mut raw,
-        );
-        if hr.is_err() || raw.is_null() {
-            return;
-        }
+        let apps: IVirtualDesktopPinnedApps = match sp.QueryService(&SID_PINNED_APPS) {
+            Ok(a) => a,
+            Err(_) => return,
+        };
 
-        let apps: IVirtualDesktopPinnedApps = IVirtualDesktopPinnedApps::from_raw(raw);
         let _ = apps.PinWindow(hwnd);
     }
 }
