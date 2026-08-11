@@ -3,28 +3,26 @@ mod tray;
 
 #[tauri::command]
 fn spawn_widget(app: tauri::AppHandle) {
+  // If widget already exists, just show it
   if let Some(win) = app.get_webview_window("widget") {
-    if win.is_visible().unwrap_or(false) {
-      let _ = win.hide();
-    } else {
-      let _ = win.show();
-      let _ = win.set_focus();
-    }
+    let _ = win.show();
+    let _ = win.set_focus();
     return;
   }
+  // Create a true OS-level floating overlay pill
   let _ = tauri::WebviewWindowBuilder::new(
     &app,
     "widget",
     tauri::WebviewUrl::App("/widget".into()),
   )
-  .title("EigenTime Widget")
-  .inner_size(300.0, 120.0)
-  .decorations(false)
-  .transparent(true)
-  .shadow(false)
-  .always_on_top(true)
+  .title("EigenTime Mini")
+  .inner_size(220.0, 64.0)   // Compact pill dimensions
   .resizable(false)
-  .skip_taskbar(true)
+  .decorations(false)         // Frameless OS overlay
+  .always_on_top(true)        // Float above ALL other apps
+  .transparent(true)          // Allow rounded glass pill styling
+  .shadow(false)
+  .skip_taskbar(false)        // Stay accessible/visible in Windows Taskbar
   .build();
 }
 
@@ -33,6 +31,7 @@ fn close_widget(app: tauri::AppHandle) {
   if let Some(win) = app.get_webview_window("widget") {
     let _ = win.hide();
   }
+  // Restore main window to taskbar so user can get back to the app
   if let Some(main_win) = app.get_webview_window("main") {
     let _ = main_win.show();
     let _ = main_win.unminimize();
