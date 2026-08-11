@@ -216,6 +216,7 @@ export function ArcTimer() {
   }, [snap, loaded]);
 
   const elapsed = elapsedSeconds(snap, now);
+  const sessionFocusSec = Math.round(totalFocusSec(snap, now));
   const running = isRunning(snap);
   const isPomodoro = snap.mode === "pomodoro";
 
@@ -246,7 +247,7 @@ export function ArcTimer() {
     sessions,
     stat,
     goalHours,
-    elapsed,
+    elapsed: sessionFocusSec,
     running,
   });
 
@@ -309,7 +310,11 @@ export function ArcTimer() {
   const finish = async () => {
     const total = Math.round(totalFocusSec(snap, now));
     if (total < 1) return;
-    const startedAt = snap.overallStartedAt ?? Date.now() - total * 1000;
+    
+    // We compute startedAt based on the exact focus duration so that
+    // the analytics heatmap blocks don't span across break times.
+    const startedAt = Date.now() - total * 1000;
+    
     let targetSecObj = {};
     if (snap.mode === "pomodoro" && snap.pomoFocusSec !== undefined) {
       targetSecObj = { targetSec: snap.pomoFocusSec };
@@ -366,7 +371,7 @@ export function ArcTimer() {
   const ratio = Number.isFinite(rawRatio) ? rawRatio : 0;
   const displaySec = isPomodoro ? remainingSeconds(snap, now) : elapsed;
   const phase = snap.pomoPhase ?? "focus";
-  const isDeepFlow = running && elapsed > 20 * 60 && phase === "focus";
+  const isDeepFlow = running && sessionFocusSec > 20 * 60 && phase === "focus";
 
   const activeSubject = useMemo(
     () => subjects?.find((s) => s.id === snap.subjectId) ?? null,
@@ -378,7 +383,7 @@ export function ArcTimer() {
   const todaySec = stat?.totalSec ?? 0;
   const goalSec = goalHours * 3600;
   const goalPct =
-    goalSec > 0 ? Math.min(100, Math.round(((todaySec + elapsed) / goalSec) * 100)) : 0;
+    goalSec > 0 ? Math.min(100, Math.round(((todaySec + sessionFocusSec) / goalSec) * 100)) : 0;
   const ticks = Array.from({ length: 60 }, (_, i) => i);
   const round = snap.pomoCurrentRound ?? 1;
   const totalRounds = snap.pomoRounds ?? DEFAULT_POMO_ROUNDS;

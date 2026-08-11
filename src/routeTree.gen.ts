@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as EyeRestRouteImport } from './routes/eye-rest'
+import { Route as HistoryRouteImport } from './routes/history'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SubjectsRouteImport } from './routes/subjects'
 import { Route as TasksRouteImport } from './routes/tasks'
@@ -31,6 +32,11 @@ const AnalyticsRoute = AnalyticsRouteImport.update({
 const EyeRestRoute = EyeRestRouteImport.update({
   id: '/eye-rest',
   path: '/eye-rest',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HistoryRoute = HistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -63,6 +69,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
   '/eye-rest': typeof EyeRestRoute
+  '/history': typeof HistoryRoute
   '/settings': typeof SettingsRoute
   '/subjects': typeof SubjectsRoute
   '/tasks': typeof TasksRoute
@@ -73,6 +80,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
   '/eye-rest': typeof EyeRestRoute
+  '/history': typeof HistoryRoute
   '/settings': typeof SettingsRoute
   '/subjects': typeof SubjectsRoute
   '/tasks': typeof TasksRoute
@@ -84,6 +92,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
   '/eye-rest': typeof EyeRestRoute
+  '/history': typeof HistoryRoute
   '/settings': typeof SettingsRoute
   '/subjects': typeof SubjectsRoute
   '/tasks': typeof TasksRoute
@@ -96,6 +105,7 @@ export interface FileRouteTypes {
     | '/'
     | '/analytics'
     | '/eye-rest'
+    | '/history'
     | '/settings'
     | '/subjects'
     | '/tasks'
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
     | '/'
     | '/analytics'
     | '/eye-rest'
+    | '/history'
     | '/settings'
     | '/subjects'
     | '/tasks'
@@ -116,6 +127,7 @@ export interface FileRouteTypes {
     | '/'
     | '/analytics'
     | '/eye-rest'
+    | '/history'
     | '/settings'
     | '/subjects'
     | '/tasks'
@@ -127,6 +139,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AnalyticsRoute: typeof AnalyticsRoute
   EyeRestRoute: typeof EyeRestRoute
+  HistoryRoute: typeof HistoryRoute
   SettingsRoute: typeof SettingsRoute
   SubjectsRoute: typeof SubjectsRoute
   TasksRoute: typeof TasksRoute
@@ -155,6 +168,13 @@ declare module '@tanstack/react-router' {
       path: '/eye-rest'
       fullPath: '/eye-rest'
       preLoaderRoute: typeof EyeRestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/history': {
+      id: '/history'
+      path: '/history'
+      fullPath: '/history'
+      preLoaderRoute: typeof HistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -199,6 +219,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnalyticsRoute: AnalyticsRoute,
   EyeRestRoute: EyeRestRoute,
+  HistoryRoute: HistoryRoute,
   SettingsRoute: SettingsRoute,
   SubjectsRoute: SubjectsRoute,
   TasksRoute: TasksRoute,

@@ -33,6 +33,11 @@ fn close_widget(app: tauri::AppHandle) {
   if let Some(win) = app.get_webview_window("widget") {
     let _ = win.hide();
   }
+  if let Some(main_win) = app.get_webview_window("main") {
+    let _ = main_win.show();
+    let _ = main_win.unminimize();
+    let _ = main_win.set_focus();
+  }
 }
 
 #[tauri::command]
@@ -81,8 +86,14 @@ pub fn run() {
         if window.label() == "main" {
           api.prevent_close();
           let _ = window.hide();
-          // We no longer automatically spawn the widget on close!
-          // spawn_widget(window.app_handle().clone());
+        }
+      }
+      tauri::WindowEvent::Resized(_) => {
+        if window.label() == "main" {
+          if window.is_minimized().unwrap_or(false) {
+            let _ = window.hide();
+            spawn_widget(window.app_handle().clone());
+          }
         }
       }
       _ => {}

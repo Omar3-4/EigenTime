@@ -8,6 +8,7 @@ import {
   Settings as SettingsIcon,
   Timer as TimerIcon,
   Languages,
+  History,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { useI18n } from "@/lib/i18n";
@@ -19,6 +20,7 @@ const nav = [
   { to: "/subjects", key: "subjects", icon: Layers },
   { to: "/tasks", key: "tasks", icon: CheckSquare },
   { to: "/analytics", key: "analytics", icon: BarChart3 },
+  { to: "/history", key: "history", icon: History },
   { to: "/settings", key: "settings", icon: SettingsIcon },
 ] as const;
 

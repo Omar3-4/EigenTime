@@ -176,8 +176,38 @@ export async function recentSessions(limit = 8): Promise<Session[]> {
 
 /** Full session log — only used for analytics with a bounded window. */
 export async function allSessions(): Promise<Session[]> {
-  const all = await getDb().sessions.orderBy("startedAt").toArray();
+  const all = await getDb().sessions.orderBy("startedAt").reverse().toArray();
   return all.filter((s) => s.durationSec > 0);
+}
+
+export async function deleteSession(id: string): Promise<void> {
+  const db = getDb();
+  await db.transaction("rw", db.sessions, db.dailyStats, async () => {
+    const session = await db.sessions.get(id);
+    if (!session) return;
+    await db.sessions.delete(id);
+    await rollUpDay(session.day);
+  });
+}
+
+export async function updateSession(id: string, updates: Partial<Session>): Promise<void> {
+  const db = getDb();
+  await db.transaction("rw", db.sessions, db.dailyStats, async () => {
+    const session = await db.sessions.get(id);
+    if (!session) return;
+    const oldDay = session.day;
+    const updated = { ...session, ...updates };
+    // recompute day key if startedAt changed
+    if (updates.startedAt) {
+      updated.day = dayKey(updates.startedAt);
+    }
+    await db.sessions.put(updated);
+    
+    await rollUpDay(oldDay);
+    if (updated.day !== oldDay) {
+      await rollUpDay(updated.day);
+    }
+  });
 }
 
 /**
