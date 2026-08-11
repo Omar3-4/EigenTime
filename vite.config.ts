@@ -17,5 +17,14 @@ export default defineConfig({
   build: {
     outDir: ".output/public",
     emptyOutDir: true,
+    rollupOptions: {
+      input: {
+        // Main app entry
+        main: resolve(import.meta.dirname, "index.html"),
+        // Widget gets its own completely separate bundle
+        widget: resolve(import.meta.dirname, "widget.html"),
+      },
+    },
   },
 });
+

@@ -9,11 +9,11 @@ fn spawn_widget(app: tauri::AppHandle) {
     let _ = win.set_focus();
     return;
   }
-  // Create a true OS-level floating overlay pill
+  // Create a true OS-level floating overlay pill with its own isolated bundle
   let _ = tauri::WebviewWindowBuilder::new(
     &app,
     "widget",
-    tauri::WebviewUrl::App("/widget".into()),
+    tauri::WebviewUrl::App("widget.html".into()),  // Own HTML — NOT the main SPA
   )
   .title("EigenTime Mini")
   .inner_size(220.0, 64.0)   // Compact pill dimensions
