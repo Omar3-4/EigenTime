@@ -2,11 +2,11 @@
 /// Uses the undocumented (but stable since Win10) IVirtualDesktopPinnedApps COM interface.
 #[cfg(target_os = "windows")]
 pub fn pin_to_all_virtual_desktops(window: &tauri::WebviewWindow) {
-    use tauri::raw_window_handle::{HasWindowHandle, RawWindowHandle};
+    use raw_window_handle::{HasWindowHandle, RawWindowHandle};
     use windows::{
         core::*,
         Win32::{
-            Foundation::{BOOL, HWND},
+            Foundation::HWND,
             System::Com::{
                 CoCreateInstance, CoInitializeEx, IServiceProvider, CLSCTX_LOCAL_SERVER,
                 COINIT_APARTMENTTHREADED,
@@ -34,10 +34,10 @@ pub fn pin_to_all_virtual_desktops(window: &tauri::WebviewWindow) {
     // Define the interface vtable manually (not in windows-rs — it's undocumented)
     #[interface("4CE81583-1E4C-4632-A621-07A53543148F")]
     unsafe trait IVirtualDesktopPinnedApps: IUnknown {
-        fn IsAppIdPinned(&self, app_id: PCWSTR, is_pinned: *mut BOOL) -> HRESULT;
+        fn IsAppIdPinned(&self, app_id: PCWSTR, is_pinned: *mut i32) -> HRESULT;
         fn PinAppID(&self, app_id: PCWSTR) -> HRESULT;
         fn UnpinAppID(&self, app_id: PCWSTR) -> HRESULT;
-        fn IsWindowPinned(&self, hwnd: HWND, is_pinned: *mut BOOL) -> HRESULT;
+        fn IsWindowPinned(&self, hwnd: HWND, is_pinned: *mut i32) -> HRESULT;
         fn PinWindow(&self, hwnd: HWND) -> HRESULT;
         fn UnpinWindow(&self, hwnd: HWND) -> HRESULT;
     }
