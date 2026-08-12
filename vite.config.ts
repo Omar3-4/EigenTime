@@ -2,7 +2,10 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
 import tailwindcss from "@tailwindcss/vite";
-import { resolve } from "path";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [
@@ -21,9 +24,9 @@ export default defineConfig({
     rollupOptions: {
       input: {
         // Main app entry
-        main: resolve(import.meta.dirname, "index.html"),
+        main: path.resolve(__dirname, "index.html"),
         // Widget gets its own completely separate bundle
-        widget: resolve(import.meta.dirname, "widget.html"),
+        widget: path.resolve(__dirname, "widget.html"),
       },
     },
   },
